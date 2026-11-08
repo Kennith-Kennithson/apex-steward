@@ -39,6 +39,7 @@ interface ExamScreenProps {
   lapNumber?: number;
   corner?: string;
   videoUrl?: string;
+  permanentlyMuted?: boolean;
   driverA: DriverDetails;
   driverB: DriverDetails;
   onNext: () => void;
@@ -90,6 +91,7 @@ export default function ExamScreen({
   lapNumber,
   corner,
   videoUrl,
+  permanentlyMuted = false,
   driverA,
   driverB,
   onNext,
@@ -113,7 +115,7 @@ export default function ExamScreen({
     setError("");
 
     try {
-      const response = await fetch("/api/admin/quiz/answer", {
+      const response = await fetch("/api/quiz/answer", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -179,6 +181,7 @@ export default function ExamScreen({
         <div className="exam-video-placeholder">
   <IncidentVideoPlayer
     videoUrl={videoUrl}
+    permanentlyMuted={permanentlyMuted}
     incidentId={incidentId}
   />
 </div>
