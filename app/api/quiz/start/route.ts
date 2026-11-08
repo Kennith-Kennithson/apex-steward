@@ -35,8 +35,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Use a callsign of 3–16 letters, numbers, underscores or hyphens." }, { status: 400 });
     }
 
-    if (mode !== "private" && validCallsign(callsign)) {
-      if (leaderboardOptIn) await createOrReadPlayerToken();
+    if (leaderboardOptIn && validCallsign(callsign)) {
+      await createOrReadPlayerToken();
       const playerTokenHash = await getPlayerTokenHash();
       if (!(await isCallsignAvailableForPlayer(callsign, playerTokenHash))) {
         return NextResponse.json({ error: "That callsign is already on the leaderboard. Please choose another." }, { status: 409 });
