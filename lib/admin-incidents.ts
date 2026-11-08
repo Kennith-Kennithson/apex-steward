@@ -399,6 +399,10 @@ export async function createAdminIncident(
    now,
 now,
 incident.summary ?? "",
+    true,
+    true,
+    incident.video?.permanentlyMuted ?? false,
+    "[1,0.75,0.5,0.25]",
 ]);
 
   // Record the creation in the audit log.
