@@ -75,7 +75,6 @@ export interface IncidentVideo {
 
 export interface IncidentDecision {
   responsibility: ResponsibilityFinding;
-  responsibilityIsScorable: boolean;
   penalty: PenaltyType;
   penaltyDetails?: string;
   explanation: string;
