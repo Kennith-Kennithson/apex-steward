@@ -45,7 +45,7 @@ function decryptSession(value: string): PublicQuizSession | null {
       getEncryptionKey(),
       data.subarray(0, 12)
     );
-    decipher.setAuthTag(data.subarray(12, 28]);
+    decipher.setAuthTag(data.subarray(12, 28));
 
     const decrypted = Buffer.concat([
       decipher.update(data.subarray(28)),
