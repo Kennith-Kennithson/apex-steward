@@ -1,5 +1,4 @@
-import { NextResponse } from "next/server";
-import { connection } from "next/server";
+import { NextResponse, connection } from "next/server";
 import { getLeaderboard } from "@/lib/leaderboard";
 
 export async function GET() {
