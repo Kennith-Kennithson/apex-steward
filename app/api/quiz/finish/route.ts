@@ -3,7 +3,7 @@ import { getPublicQuizSession, clearPublicQuizSession } from "@/lib/public-quiz-
 import { getPlayerTokenHash } from "@/lib/player-identity";
 import { submitLeaderboardResult } from "@/lib/leaderboard";
 
-import { gradeForPercentage } from "@/lib/quiz-scoring";
+import { gradeForPercentage, MAX_POINTS_PER_INCIDENT } from "@/lib/quiz-scoring";
 
 export async function POST(request: Request) {
   const origin = request.headers.get("origin");
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     }
 
     const championshipPoints = session.answers.reduce((total, answer) => total + answer.earnedPoints, 0);
-    const maximumPoints = session.answers.reduce((total, answer) => total + answer.maximumPoints, 0);
+    const maximumPoints = session.incidents.length * MAX_POINTS_PER_INCIDENT;
     const percentage = maximumPoints > 0 ? (championshipPoints / maximumPoints) * 100 : 0;
     const grade = gradeForPercentage(percentage);
     const fastestLapMs = Math.max(1, Date.now() - session.startedAtMs);
