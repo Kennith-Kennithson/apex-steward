@@ -192,6 +192,14 @@ export default function IncidentVideoPlayer({
           src={safeUrl}
           autoPlay={autoplayMuted}
           muted
+          onVolumeChange={(event) => {
+            const video = event.currentTarget;
+            if (permanentlyMuted && !video.muted) {
+              video.muted = true;
+              return;
+            }
+            setMuted(video.muted);
+          }}
           loop={loop}
           playsInline
           preload="metadata"
