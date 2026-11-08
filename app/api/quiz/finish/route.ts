@@ -1,0 +1,77 @@
+import { NextResponse } from "next/server";
+import { getPublicQuizSession, clearPublicQuizSession } from "@/lib/public-quiz-session";
+import { getPlayerTokenHash } from "@/lib/player-identity";
+import { submitLeaderboardResult } from "@/lib/leaderboard";
+
+function gradeForPercentage(percentage: number): string {
+  const whole = Math.floor(percentage);
+  if (whole >= 91) return "F1 Race Director";
+  if (whole >= 81) return "Head F1 Steward";
+  if (whole >= 71) return "Junior F1 Steward";
+  if (whole >= 61) return "Weekend Steward";
+  if (whole >= 51) return "Head Go-Karts Steward";
+  if (whole >= 41) return "Junior Go-Karts Steward";
+  return "Wouldn't be trusted on the local family karts track";
+}
+
+export async function POST(request: Request) {
+  const origin = request.headers.get("origin");
+  if (!origin || origin !== new URL(request.url).origin) {
+    return NextResponse.json({ error: "Request rejected." }, { status: 403 });
+  }
+
+  try {
+    const session = await getPublicQuizSession();
+    if (!session) {
+      return NextResponse.json({ error: "Your examination has expired. Please start again." }, { status: 401 });
+    }
+    if (session.submittedIncidentIds.length !== 15 || session.answers.length !== 15) {
+      return NextResponse.json({ error: "You must complete all 15 incidents before receiving a final result." }, { status: 409 });
+    }
+
+    const championshipPoints = session.answers.reduce((total, answer) => total + answer.earnedPoints, 0);
+    const maximumPoints = session.answers.reduce((total, answer) => total + answer.maximumPoints, 0);
+    const percentage = maximumPoints > 0 ? (championshipPoints / maximumPoints) * 100 : 0;
+    const grade = gradeForPercentage(percentage);
+    const fastestLapMs = Math.max(1, Date.now() - session.startedAtMs);
+
+    let leaderboardStatus: "private" | "saved" | "unavailable" = "private";
+    if (session.leaderboardOptIn && session.callsign) {
+      const playerTokenHash = await getPlayerTokenHash();
+      if (!playerTokenHash) {
+        return NextResponse.json({ error: "Your browser identification is unavailable. Please restart the quiz if you want to submit to the leaderboard." }, { status: 409 });
+      }
+      await submitLeaderboardResult({
+        callsign: session.callsign,
+        playerTokenHash,
+        championshipPoints,
+        maximumPoints,
+        percentage: Number(percentage.toFixed(2)),
+        grade,
+        fastestLapMs,
+      });
+      leaderboardStatus = "saved";
+    }
+
+    await clearPublicQuizSession();
+
+    return NextResponse.json({
+      result: {
+        championshipPoints,
+        maximumPoints,
+        percentage: Number(percentage.toFixed(2)),
+        grade,
+        fastestLapMs,
+        leaderboardStatus,
+        callsign: session.callsign,
+      },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (message.includes("already on the leaderboard") || message.includes("different callsign")) {
+      return NextResponse.json({ error: message }, { status: 409 });
+    }
+    console.error("Quiz completion failed:", error);
+    return NextResponse.json({ error: "Unable to calculate or save your final result." }, { status: 503 });
+  }
+}
