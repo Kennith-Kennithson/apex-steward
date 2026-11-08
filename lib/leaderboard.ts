@@ -42,12 +42,20 @@ async function request(path: string, init: RequestInit = {}) {
 }
 
 export async function isCallsignAvailable(callsign: string): Promise<boolean> {
+  return isCallsignAvailableForPlayer(callsign, null);
+}
+
+export async function isCallsignAvailableForPlayer(
+  callsign: string,
+  playerTokenHash: string | null
+): Promise<boolean> {
   const safe = callsign.toLowerCase().replace(/[^a-z0-9_-]/g, "");
   const response = await request(
-    `leaderboard_entries?select=id&callsign_key=eq.${encodeURIComponent(safe)}&limit=1`
+    `leaderboard_entries?select=id,player_token_hash&callsign_key=eq.${encodeURIComponent(safe)}&limit=1`
   );
-  const rows = await response.json() as { id: string }[];
-  return rows.length === 0;
+  const rows = await response.json() as { id: string; player_token_hash: string }[];
+  if (rows.length === 0) return true;
+  return Boolean(playerTokenHash && rows[0].player_token_hash === playerTokenHash);
 }
 
 export async function getLeaderboard(limit = 100): Promise<LeaderboardEntry[]> {
