@@ -13,9 +13,9 @@ export interface LeaderboardEntry {
 
 function configuration() {
   const url = process.env.SUPABASE_URL?.replace(/\/$/, "");
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const key = process.env.SUPABASE_SECRET_KEY;
   if (!url || !key) {
-    throw new Error("Supabase leaderboard is not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.");
+    throw new Error("Supabase leaderboard is not configured. Set SUPABASE_URL and SUPABASE_SECRET_KEY.");
   }
   return { url, key };
 }
@@ -27,7 +27,6 @@ async function request(path: string, init: RequestInit = {}) {
     cache: "no-store",
     headers: {
       apikey: key,
-      Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",
       ...(init.headers ?? {}),
     },
@@ -81,7 +80,6 @@ export async function submitLeaderboardResult(input: {
     cache: "no-store",
     headers: {
       apikey: key,
-      Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
