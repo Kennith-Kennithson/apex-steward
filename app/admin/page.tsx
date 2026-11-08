@@ -1,5 +1,6 @@
 
 import Link from "next/link";
+import { Suspense } from "react";
 import { connection } from "next/server";
 import { redirect } from "next/navigation";
 
@@ -12,7 +13,7 @@ import {
   getAdminIncidentList,
 } from "@/lib/google-sheets";
 
-export default async function AdminDashboardPage() {
+async function AdminDashboardContent() {
   await connection();
 
   const authenticated = await isAdminAuthenticated();
@@ -234,5 +235,20 @@ export default async function AdminDashboardPage() {
 
       </div>
     </main>
+  );
+}
+
+
+export default function AdminDashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-[#101113] px-5 py-10 text-white sm:px-8 lg:px-12">
+          <p className="text-sm text-neutral-400">Loading administration...</p>
+        </main>
+      }
+    >
+      <AdminDashboardContent />
+    </Suspense>
   );
 }
