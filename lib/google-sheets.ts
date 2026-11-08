@@ -58,7 +58,7 @@ async function readSheet(
 
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `${tabName}!A:Z`,
+    range: `${tabName}!A:AD`,
   });
 
   const rows = response.data.values ?? [];
@@ -99,7 +99,7 @@ export async function appendSheetRow(
 
   await sheets.spreadsheets.values.append({
     spreadsheetId,
-    range: `${tabName}!A:Z`,
+    range: `${tabName}!A:AD`,
     valueInputOption: "RAW",
     insertDataOption: "INSERT_ROWS",
     requestBody: {
@@ -139,7 +139,7 @@ export async function updateSheetRecord(
 
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `${tabName}!A:Z`,
+    range: `${tabName}!A:AD`,
   });
 
   const rows = response.data.values ?? [];
@@ -327,6 +327,7 @@ function parseIncident(
               row,
               "video_permission"
             ) as NonNullable<Incident["video"]>["permission"],
+            permanentlyMuted: parseBoolean(row.video_permanently_muted),
           }
         : undefined,
 
@@ -404,7 +405,12 @@ export async function getPublishedIncidents(): Promise<Incident[]> {
   const publishedRows = incidentRows.filter(
     (row) =>
       row.publication_status?.toLowerCase() === "published" &&
-      row.evidence_status?.toLowerCase() === "verified"
+      row.evidence_status?.toLowerCase() === "verified" &&
+      ["official-embed", "licensed", "permission-granted"].includes(
+        (row.video_permission ?? "").toLowerCase()
+      ) &&
+      Boolean(row.video_url?.trim()) &&
+      Boolean(row.video_provider?.trim())
   );
 
   return publishedRows.map((row) =>
@@ -616,7 +622,7 @@ export async function updateAdminIncidentStatus(
 
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: "Incidents!A:Z",
+    range: "Incidents!A:AD",
   });
 
   const rows = response.data.values ?? [];
