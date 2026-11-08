@@ -120,6 +120,19 @@ async function AdminDashboardContent() {
           </div>
         </section>
 
+        <section className="mb-6 rounded-xl border border-neutral-800 bg-[#181a1e] p-6 sm:p-8">
+          <div className="flex flex-wrap items-center justify-between gap-5">
+            <div>
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-red-400">Player management</p>
+              <h2 className="text-2xl font-bold">Global leaderboard</h2>
+              <p className="mt-2 max-w-lg text-sm leading-6 text-neutral-400">Review public callsigns and remove offensive or inappropriate entries.</p>
+            </div>
+            <Link href="/admin/leaderboard" className="inline-flex items-center gap-3 rounded-lg border border-neutral-600 bg-neutral-900 px-6 py-4 text-sm font-bold text-white transition hover:border-red-500">
+              MANAGE LEADERBOARD <span>→</span>
+            </Link>
+          </div>
+        </section>
+
         {/* QUICK ACTIONS */}
         <section className="mb-12">
           <div className="flex flex-wrap items-center justify-between gap-5 rounded-xl border border-red-900/40 bg-gradient-to-r from-[#271316] to-[#171214] p-6 sm:p-8">
