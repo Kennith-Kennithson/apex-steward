@@ -1,10 +1,13 @@
+import { Suspense } from "react";
+import { connection } from "next/server";
 
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isAdminAuthenticated } from "@/lib/admin-session";
 import AdminIncidentForm from "@/components/admin-incident-form";
 
-export default async function NewIncidentPage() {
+async function NewIncidentContent() {
+  await connection();
   const authenticated = await isAdminAuthenticated();
 
   if (!authenticated) {
@@ -32,5 +35,14 @@ export default async function NewIncidentPage() {
 
       <AdminIncidentForm />
     </main>
+  );
+}
+
+
+export default function NewIncidentPage() {
+  return (
+    <Suspense fallback={<main className="min-h-screen bg-[#101113] px-6 py-10 text-neutral-400">Loading incident form...</main>}>
+      <NewIncidentContent />
+    </Suspense>
   );
 }
