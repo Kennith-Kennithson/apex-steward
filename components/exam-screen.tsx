@@ -224,7 +224,7 @@ export default function ExamScreen({
               <p className="mt-1 text-sm text-neutral-400">
                 {result.responsibilityScorable
                   ? result.responsibilityCorrect ? "Correct — 15 championship points." : `Official finding: ${responsibilityLabel(result.officialResponsibility, driverA.name, driverB.name)}.`
-                  : "Responsibility was not scored because no definitive finding was recorded."}
+                  : "Responsibility was not scored because this finding was marked unscorable."}
               </p>
             </div>
             <div className="rounded-lg border border-neutral-700 bg-neutral-900 p-4">
