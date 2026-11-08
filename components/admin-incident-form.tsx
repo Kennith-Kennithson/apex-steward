@@ -124,16 +124,6 @@ export default function AdminIncidentForm({
       if (field) field.value = value;
     }
 
-    const responsibilityCheckbox =
-      formRef.current.elements.namedItem(
-        "responsibilityIsScorable"
-      ) as HTMLInputElement | null;
-
-    if (responsibilityCheckbox) {
-      responsibilityCheckbox.checked =
-        initialData.officialDecision.responsibilityIsScorable;
-    }
-
     const permanentlyMutedCheckbox = formRef.current.elements.namedItem(
       "permanentlyMuted"
     ) as HTMLInputElement | null;
@@ -184,8 +174,6 @@ export default function AdminIncidentForm({
 
       officialDecision: {
         responsibility: value("responsibility"),
-        responsibilityIsScorable:
-          form.get("responsibilityIsScorable") === "on",
         penalty: value("penalty"),
         penaltyDetails: value("penaltyDetails"),
         explanation: value("explanation"),
@@ -426,22 +414,11 @@ export default function AdminIncidentForm({
         <div className="space-y-5 p-5 sm:p-7">
           <Field label="Responsibility finding">
             <select name="responsibility" className={inputClass} required>
-              <option value="not-determined">Not determined</option>
               <option value="driver-a">Driver A</option>
               <option value="driver-b">Driver B</option>
               <option value="racing-incident">Racing incident</option>
             </select>
           </Field>
-
-          <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-white/10 bg-black/20 p-4 text-sm text-neutral-300">
-            <input type="checkbox" name="responsibilityIsScorable" className="mt-0.5 h-4 w-4 accent-red-600" />
-            <span>
-              <span className="block font-semibold text-white">Responsibility finding is suitable for scoring</span>
-              <span className="mt-1 block text-xs leading-relaxed text-neutral-500">
-                Only select this when the official finding clearly establishes responsibility.
-              </span>
-            </span>
-          </label>
 
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Official penalty (full record)">
