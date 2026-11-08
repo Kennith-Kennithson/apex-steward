@@ -11,7 +11,6 @@ export interface PublicQuizSession {
     incidentId: string;
     driversSwapped: boolean;
   }[];
-  submittedIncidentIds: string[];
   answers: {
     incidentId: string;
     responsibility: "driver-a" | "driver-b" | "racing-incident";
@@ -59,9 +58,13 @@ function decryptSession(value: string): PublicQuizSession | null {
       !session.incidents.every((item) =>
         typeof item.incidentId === "string" && typeof item.driversSwapped === "boolean"
       ) ||
-      !Array.isArray(session.submittedIncidentIds) ||
-      !session.submittedIncidentIds.every((id) => typeof id === "string") ||
       !Array.isArray(session.answers) ||
+      !session.answers.every((answer) =>
+        answer && typeof answer.incidentId === "string" &&
+        ["driver-a", "driver-b", "racing-incident"].includes(answer.responsibility) &&
+        ["no-further-action", "penalty", "disqualified"].includes(answer.outcome) &&
+        Number.isSafeInteger(answer.earnedPoints) && Number.isSafeInteger(answer.maximumPoints)
+      ) ||
       !Number.isSafeInteger(session.startedAtMs) ||
       typeof session.leaderboardOptIn !== "boolean" ||
       !(session.callsign === null || typeof session.callsign === "string")
