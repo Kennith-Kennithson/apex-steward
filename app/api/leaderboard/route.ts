@@ -2,8 +2,9 @@ import { NextResponse, connection } from "next/server";
 import { getLeaderboard } from "@/lib/leaderboard";
 
 export async function GET() {
+  await connection();
+
   try {
-    await connection();
     const entries = await getLeaderboard(100);
     return NextResponse.json({
       entries: entries.map((entry, index) => ({
