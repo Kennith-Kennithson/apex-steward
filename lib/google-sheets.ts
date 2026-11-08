@@ -337,10 +337,6 @@ function parseIncident(
         "official_responsibility"
       ) as Incident["officialDecision"]["responsibility"],
 
-      responsibilityIsScorable: parseBoolean(
-        row.responsibility_scorable
-      ),
-
       penalty: requiredField(
         row,
         "penalty_type"
@@ -410,7 +406,10 @@ export async function getPublishedIncidents(): Promise<Incident[]> {
         (row.video_permission ?? "").toLowerCase()
       ) &&
       Boolean(row.video_url?.trim()) &&
-      Boolean(row.video_provider?.trim())
+      Boolean(row.video_provider?.trim()) &&
+      ["driver-a", "driver-b", "racing-incident"].includes(
+        (row.official_responsibility ?? "").toLowerCase()
+      )
   );
 
   return publishedRows.map((row) =>
