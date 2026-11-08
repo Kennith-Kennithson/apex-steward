@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import SiteHeader from "@/components/site-header";
 import SiteFooter from "@/components/site-footer";
 import { getLeaderboard } from "@/lib/leaderboard";
@@ -11,6 +12,7 @@ function formatLap(milliseconds: number) {
 }
 
 export default async function LeaderboardPage() {
+  await connection();
   let entries = null;
   let unavailable = false;
   try {
