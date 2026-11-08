@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateIncidentScore, gradeForPercentage, publicOutcomeForPenalty } from "@/lib/quiz-scoring";
+import { calculateIncidentScore, gradeForPercentage, publicOutcomeForPenalty } from "./quiz-scoring";
 
 describe("quiz scoring", () => {
   it("awards 15 points for responsibility and 10 for outcome", () => {
