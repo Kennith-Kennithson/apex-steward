@@ -7,7 +7,7 @@
  * and hides the column so it cannot be mistaken for a separate setting.
  */
 function hideLegacyResponsibilityScoringFlag() {
-  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const spreadsheet = SpreadsheetApp.openById("1hDn1ntIKprDDZ7G5qnF5pj2rtUlSeFEipf64vwDZ45g");
   const sheet = spreadsheet.getSheetByName("Incidents");
 
   if (!sheet) {
