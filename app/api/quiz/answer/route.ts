@@ -44,6 +44,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid answer submission." }, { status: 400 });
     }
 
+    const selectedResponsibility = responsibility as (typeof validResponsibilities)[number];
+    const selectedOutcome = outcome as (typeof validOutcomes)[number];
+
     const session = await getPublicQuizSession();
     if (!session) {
       return NextResponse.json({ error: "Your examination has expired. Please start again." }, { status: 401 });
@@ -62,7 +65,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "This incident is no longer available." }, { status: 404 });
     }
 
-    let originalResponsibility = responsibility;
+    let originalResponsibility: (typeof validResponsibilities)[number] = selectedResponsibility;
     if (sessionIncident.driversSwapped && (responsibility === "driver-a" || responsibility === "driver-b")) {
       originalResponsibility = responsibility === "driver-a" ? "driver-b" : "driver-a";
     }
@@ -73,7 +76,7 @@ export async function POST(request: Request) {
     const responsibilityCorrect = responsibilityScorable
       ? originalResponsibility === decision.responsibility
       : null;
-    const outcomeCorrect = outcome === publicOutcome(decision.penalty);
+    const outcomeCorrect = selectedOutcome === publicOutcome(decision.penalty);
     const earnedPoints =
       (responsibilityScorable && responsibilityCorrect ? 15 : 0) +
       (outcomeCorrect ? 10 : 0);
@@ -88,8 +91,8 @@ export async function POST(request: Request) {
     session.submittedIncidentIds.push(incidentId);
     session.answers.push({
       incidentId,
-      responsibility,
-      outcome,
+      responsibility: selectedResponsibility,
+      outcome: selectedOutcome,
       earnedPoints,
       maximumPoints,
     });
