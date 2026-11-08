@@ -27,15 +27,15 @@ The incident library remains in Google Sheets. Supabase stores only leaderboard 
 1. Create a free Supabase project at https://supabase.com.
 2. Open the project's SQL Editor.
 3. Run the complete SQL file at `supabase/migrations/202611090001_leaderboard.sql`.
-4. In Supabase project settings, copy the project URL and the **service_role** secret key.
+4. In Supabase project settings, copy the project URL and the **secret key** (starts with `sb_secret_`).
 5. Add these two variables to your local `.env.local` file:
 
 ```dotenv
 SUPABASE_URL=https://YOUR-PROJECT-REF.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVICE_ROLE_SECRET
+SUPABASE_SECRET_KEY=YOUR_SERVICE_ROLE_SECRET
 ```
 
-Do not prefix the service-role key with `NEXT_PUBLIC_`. It must never be exposed to the browser or committed to Git. Row Level Security is enabled and direct browser access is revoked; all database operations go through server-side API routes.
+Send the secret key using the `apikey` header only; do not use it as a Bearer token or prefix it with `NEXT_PUBLIC_`. It must never be exposed to the browser or committed to Git. Row Level Security is enabled and direct browser access is revoked; all database operations go through server-side API routes.
 
 After adding the variables, restart the Next.js development server.
 
