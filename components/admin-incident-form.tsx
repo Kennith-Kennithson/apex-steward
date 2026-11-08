@@ -419,6 +419,9 @@ export default function AdminIncidentForm({
               <option value="racing-incident">Racing incident</option>
             </select>
           </Field>
+          <p className="text-xs leading-relaxed text-neutral-400">
+            Every responsibility finding is scored. A correct Driver A, Driver B, or Racing incident answer earns 15 points; the outcome is worth another 10. Every incident is worth 25 points maximum.
+          </p>
 
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Official penalty (full record)">
