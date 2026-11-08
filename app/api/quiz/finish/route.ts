@@ -3,16 +3,7 @@ import { getPublicQuizSession, clearPublicQuizSession } from "@/lib/public-quiz-
 import { getPlayerTokenHash } from "@/lib/player-identity";
 import { submitLeaderboardResult } from "@/lib/leaderboard";
 
-function gradeForPercentage(percentage: number): string {
-  const whole = Math.floor(percentage);
-  if (whole >= 91) return "F1 Race Director";
-  if (whole >= 81) return "Head F1 Steward";
-  if (whole >= 71) return "Junior F1 Steward";
-  if (whole >= 61) return "Weekend Steward";
-  if (whole >= 51) return "Head Go-Karts Steward";
-  if (whole >= 41) return "Junior Go-Karts Steward";
-  return "Wouldn't be trusted on the local family karts track";
-}
+import { gradeForPercentage } from "@/lib/quiz-scoring";
 
 export async function POST(request: Request) {
   const origin = request.headers.get("origin");
