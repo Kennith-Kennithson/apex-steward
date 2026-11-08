@@ -23,6 +23,17 @@ describe("quiz scoring", () => {
     })).toEqual({ earnedPoints: 15, maximumPoints: 25 });
   });
 
+  it("keeps the maximum at 25 points for every possible answer combination", () => {
+    for (const responsibilityCorrect of [true, false]) {
+      for (const outcomeCorrect of [true, false]) {
+        expect(calculateIncidentScore({
+          responsibilityCorrect,
+          outcomeCorrect,
+        }).maximumPoints).toBe(25);
+      }
+    }
+  });
+
   it("maps detailed official penalties to the three public outcomes", () => {
     expect(publicOutcomeForPenalty("no-further-action")).toBe("no-further-action");
     expect(publicOutcomeForPenalty("disqualification")).toBe("disqualified");
