@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { connection } from "next/server";
 import SiteHeader from "@/components/site-header";
 import SiteFooter from "@/components/site-footer";
@@ -11,7 +12,7 @@ function formatLap(milliseconds: number) {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}.${String(milliseconds % 1000).padStart(3, "0")}`;
 }
 
-export default async function LeaderboardPage() {
+async function LeaderboardContent() {
   await connection();
   let entries = null;
   let unavailable = false;
@@ -59,4 +60,12 @@ export default async function LeaderboardPage() {
     </main>
     <SiteFooter />
   </>;
+}
+
+export default function LeaderboardPage() {
+  return (
+    <Suspense fallback={<main className="min-h-[75vh] bg-[#101113] px-5 py-16 text-neutral-400">Loading world standings...</main>}>
+      <LeaderboardContent />
+    </Suspense>
+  );
 }
