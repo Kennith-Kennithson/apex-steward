@@ -4,18 +4,23 @@ import { calculateIncidentScore, gradeForPercentage, publicOutcomeForPenalty } f
 describe("quiz scoring", () => {
   it("awards 15 points for responsibility and 10 for outcome", () => {
     expect(calculateIncidentScore({
-      responsibilityScorable: true,
       responsibilityCorrect: true,
       outcomeCorrect: true,
     })).toEqual({ earnedPoints: 25, maximumPoints: 25 });
   });
 
-  it("excludes unscorable responsibility from both earned and possible points", () => {
+  it("keeps every incident worth 25 points when the responsibility answer is wrong", () => {
     expect(calculateIncidentScore({
-      responsibilityScorable: false,
-      responsibilityCorrect: null,
+      responsibilityCorrect: false,
       outcomeCorrect: true,
-    })).toEqual({ earnedPoints: 10, maximumPoints: 10 });
+    })).toEqual({ earnedPoints: 10, maximumPoints: 25 });
+  });
+
+  it("awards the full responsibility points for a correct racing-incident finding", () => {
+    expect(calculateIncidentScore({
+      responsibilityCorrect: true,
+      outcomeCorrect: false,
+    })).toEqual({ earnedPoints: 15, maximumPoints: 25 });
   });
 
   it("maps detailed official penalties to the three public outcomes", () => {
