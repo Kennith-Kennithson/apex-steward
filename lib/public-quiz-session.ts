@@ -36,7 +36,7 @@ function encryptSession(session: PublicQuizSession): string {
   const iv = randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", getEncryptionKey(), iv);
   const encrypted = Buffer.concat([
-    cipher.update(deflateRawSync(Buffer.from(JSON.stringify(session), "utf8")),
+    cipher.update(deflateRawSync(Buffer.from(JSON.stringify(session), "utf8"))),
     cipher.final(),
   ]);
   return Buffer.concat([iv, cipher.getAuthTag(), encrypted]).toString("base64url");
