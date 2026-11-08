@@ -9,16 +9,14 @@ export function publicOutcomeForPenalty(penalty: PenaltyType): PublicQuizOutcome
 }
 
 export function calculateIncidentScore(input: {
-  responsibilityScorable: boolean;
-  responsibilityCorrect: boolean | null;
+  responsibilityCorrect: boolean;
   outcomeCorrect: boolean;
 }) {
-  const responsibilityPoints =
-    input.responsibilityScorable && input.responsibilityCorrect === true ? 15 : 0;
+  const responsibilityPoints = input.responsibilityCorrect ? 15 : 0;
   const outcomePoints = input.outcomeCorrect ? 10 : 0;
   return {
     earnedPoints: responsibilityPoints + outcomePoints,
-    maximumPoints: (input.responsibilityScorable ? 15 : 0) + 10,
+    maximumPoints: 25,
   };
 }
 
