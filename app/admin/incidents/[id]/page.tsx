@@ -294,12 +294,6 @@ async function AdminIncidentContent({
                 {incident.officialDecision.responsibility}
               </Detail>
 
-              <Detail label="Responsibility is scorable">
-                {incident.officialDecision.responsibilityIsScorable
-                  ? "Yes"
-                  : "No"}
-              </Detail>
-
               <Detail label="Penalty">
                 {incident.officialDecision.penalty}
               </Detail>
