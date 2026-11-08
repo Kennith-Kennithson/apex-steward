@@ -12,15 +12,23 @@ export interface PublicQuizSession {
     driversSwapped: boolean;
   }[];
   submittedIncidentIds: string[];
+  answers: {
+    incidentId: string;
+    responsibility: "driver-a" | "driver-b" | "racing-incident";
+    outcome: "no-further-action" | "penalty" | "disqualified";
+    earnedPoints: number;
+    maximumPoints: number;
+  }[];
+  startedAtMs: number;
+  callsign: string | null;
+  leaderboardOptIn: boolean;
 }
 
 function getEncryptionKey(): Buffer {
   const secret = process.env.APEX_ADMIN_SESSION_SECRET;
-
   if (!secret || !/^[a-f0-9]{64}$/i.test(secret)) {
     throw new Error("Quiz session encryption is not configured.");
   }
-
   return Buffer.from(secret, "hex");
 }
 
@@ -31,7 +39,6 @@ function encryptSession(session: PublicQuizSession): string {
     cipher.update(JSON.stringify(session), "utf8"),
     cipher.final(),
   ]);
-
   return Buffer.concat([iv, cipher.getAuthTag(), encrypted]).toString("base64url");
 }
 
@@ -39,44 +46,33 @@ function decryptSession(value: string): PublicQuizSession | null {
   try {
     const data = Buffer.from(value, "base64url");
     if (data.length < 29) return null;
-
-    const decipher = createDecipheriv(
-      "aes-256-gcm",
-      getEncryptionKey(),
-      data.subarray(0, 12)
-    );
+    const decipher = createDecipheriv("aes-256-gcm", getEncryptionKey(), data.subarray(0, 12));
     decipher.setAuthTag(data.subarray(12, 28));
-
     const decrypted = Buffer.concat([
       decipher.update(data.subarray(28)),
       decipher.final(),
     ]);
-
     const session = JSON.parse(decrypted.toString("utf8")) as PublicQuizSession;
-
     if (
       !Array.isArray(session.incidents) ||
       session.incidents.length !== 15 ||
-      !session.incidents.every(
-        (item) =>
-          typeof item.incidentId === "string" &&
-          typeof item.driversSwapped === "boolean"
+      !session.incidents.every((item) =>
+        typeof item.incidentId === "string" && typeof item.driversSwapped === "boolean"
       ) ||
       !Array.isArray(session.submittedIncidentIds) ||
-      !session.submittedIncidentIds.every((id) => typeof id === "string")
-    ) {
-      return null;
-    }
-
+      !session.submittedIncidentIds.every((id) => typeof id === "string") ||
+      !Array.isArray(session.answers) ||
+      !Number.isSafeInteger(session.startedAtMs) ||
+      typeof session.leaderboardOptIn !== "boolean" ||
+      !(session.callsign === null || typeof session.callsign === "string")
+    ) return null;
     return session;
   } catch {
     return null;
   }
 }
 
-export async function startPublicQuizSession(
-  session: PublicQuizSession
-): Promise<void> {
+export async function startPublicQuizSession(session: PublicQuizSession): Promise<void> {
   const store = await cookies();
   store.set(COOKIE_NAME, encryptSession(session), {
     httpOnly: true,
@@ -93,9 +89,7 @@ export async function getPublicQuizSession(): Promise<PublicQuizSession | null> 
   return value ? decryptSession(value) : null;
 }
 
-export async function updatePublicQuizSession(
-  session: PublicQuizSession
-): Promise<void> {
+export async function updatePublicQuizSession(session: PublicQuizSession): Promise<void> {
   await startPublicQuizSession(session);
 }
 
