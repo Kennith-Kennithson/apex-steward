@@ -65,14 +65,10 @@ export async function POST(request: Request) {
     }
 
     const decision = incident.officialDecision;
-    const responsibilityScorable =
-      decision.responsibilityIsScorable && decision.responsibility !== "not-determined";
-    const responsibilityCorrect = responsibilityScorable
-      ? originalResponsibility === decision.responsibility
-      : null;
+    const responsibilityCorrect =
+      originalResponsibility === decision.responsibility;
     const outcomeCorrect = selectedOutcome === publicOutcomeForPenalty(decision.penalty);
     const { earnedPoints, maximumPoints } = calculateIncidentScore({
-      responsibilityScorable,
       responsibilityCorrect,
       outcomeCorrect,
     });
@@ -96,7 +92,6 @@ export async function POST(request: Request) {
       result: {
         responsibilityCorrect,
         outcomeCorrect,
-        responsibilityScorable,
         earnedPoints,
         maximumPoints,
         officialResponsibility: displayedOfficialResponsibility,
