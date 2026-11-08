@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     if (!sessionIncident) {
       return NextResponse.json({ error: "This incident is not part of your examination." }, { status: 403 });
     }
-    if (session.submittedIncidentIds.includes(incidentId)) {
+    if (session.answers.some((answer) => answer.incidentId === incidentId)) {
       return NextResponse.json({ error: "An answer has already been submitted for this incident." }, { status: 409 });
     }
 
@@ -83,7 +83,6 @@ export async function POST(request: Request) {
         decision.responsibility === "driver-a" ? "driver-b" : "driver-a";
     }
 
-    session.submittedIncidentIds.push(incidentId);
     session.answers.push({
       incidentId,
       responsibility: selectedResponsibility,
