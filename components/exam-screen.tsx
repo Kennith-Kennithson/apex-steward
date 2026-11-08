@@ -11,9 +11,8 @@ interface DriverDetails {
 }
 
 interface ExamResult {
-  responsibilityCorrect: boolean | null;
+  responsibilityCorrect: boolean;
   outcomeCorrect: boolean;
-  responsibilityScorable: boolean;
   earnedPoints: number;
   maximumPoints: number;
   officialResponsibility: string;
@@ -62,7 +61,6 @@ function responsibilityLabel(value: string, driverAName: string, driverBName: st
   if (value === "driver-a") return driverAName;
   if (value === "driver-b") return driverBName;
   if (value === "racing-incident") return "Racing incident";
-  if (value === "not-determined") return "Not determined";
   return value;
 }
 
@@ -222,9 +220,7 @@ export default function ExamScreen({
               <p className="text-xs font-bold uppercase tracking-widest text-neutral-500">Your responsibility verdict</p>
               <p className="mt-2 font-bold">{responsibilityDisplay}</p>
               <p className="mt-1 text-sm text-neutral-400">
-                {result.responsibilityScorable
-                  ? result.responsibilityCorrect ? "Correct — 15 championship points." : `Official finding: ${responsibilityLabel(result.officialResponsibility, driverA.name, driverB.name)}.`
-                  : "Responsibility was not scored because this finding was marked unscorable."}
+                {result.responsibilityCorrect ? "Correct — 15 championship points." : `Official finding: ${responsibilityLabel(result.officialResponsibility, driverA.name, driverB.name)}.`}
               </p>
             </div>
             <div className="rounded-lg border border-neutral-700 bg-neutral-900 p-4">
