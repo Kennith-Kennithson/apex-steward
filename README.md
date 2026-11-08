@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# APEX STEWARD — local development
 
-## Getting Started
+## Requirements
 
-First, run the development server:
+- Node.js 24 or newer
+- npm
+- A Google service account with access to the incident spreadsheet
+- A Supabase project for the leaderboard
+
+## Install and run
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Google Sheets
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Keep the existing Google Sheets incident database configuration in your private `.env.local` file. Never commit the service-account JSON file or `.env.local`.
 
-## Learn More
+## Supabase leaderboard setup (Dev Build 0.3)
 
-To learn more about Next.js, take a look at the following resources:
+The incident library remains in Google Sheets. Supabase stores only leaderboard callsigns, a one-way hash of the anonymous browser token, best score, grade, fastest-lap time, and timestamps.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Create a free Supabase project at https://supabase.com.
+2. Open the project's SQL Editor.
+3. Run the complete SQL file at `supabase/migrations/202611090001_leaderboard.sql`.
+4. In Supabase project settings, copy the project URL and the **service_role** secret key.
+5. Add these two variables to your local `.env.local` file:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```dotenv
+SUPABASE_URL=https://YOUR-PROJECT-REF.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVICE_ROLE_SECRET
+```
 
-## Deploy on Vercel
+Do not prefix the service-role key with `NEXT_PUBLIC_`. It must never be exposed to the browser or committed to Git. Row Level Security is enabled and direct browser access is revoked; all database operations go through server-side API routes.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+After adding the variables, restart the Next.js development server.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Leaderboard behaviour
+
+- Players must explicitly opt in; private play never submits a result.
+- Callsigns are unique regardless of letter case.
+- The random callsign generator has more than one million possible suffix combinations for each generated word pair.
+- A secure, anonymous, first-party browser cookie lets a returning opted-in player update their own entry. Clearing browser data or changing browsers/devices loses that link; there are no accounts or fingerprinting.
+- Only a player's best score is retained. Championship points rank first, fastest lap ranks second, and earliest submission breaks an exact tie.
+- Administrators can remove inappropriate entries from **Admin → Global leaderboard**.
+
+## Scoring
+
+Each incident awards up to 15 points for the responsibility finding and 10 points for the outcome. When responsibility is officially undetermined or marked unscorable, those 15 possible points are excluded from the player's denominator for that incident.
+
+Scoring rules are versioned as `0.3` in the database so future rule changes can be distinguished from historic results.
