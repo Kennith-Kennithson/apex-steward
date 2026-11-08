@@ -36,11 +36,8 @@ export async function POST(request: Request) {
     }
 
     if (mode !== "private" && validCallsign(callsign)) {
-      let playerTokenHash: string | null = null;
-      if (leaderboardOptIn) {
-        await createOrReadPlayerToken();
-        playerTokenHash = await getPlayerTokenHash();
-      }
+      if (leaderboardOptIn) await createOrReadPlayerToken();
+      const playerTokenHash = await getPlayerTokenHash();
       if (!(await isCallsignAvailableForPlayer(callsign, playerTokenHash))) {
         return NextResponse.json({ error: "That callsign is already on the leaderboard. Please choose another." }, { status: 409 });
       }
