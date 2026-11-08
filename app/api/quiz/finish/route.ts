@@ -16,7 +16,9 @@ export async function POST(request: Request) {
     if (!session) {
       return NextResponse.json({ error: "Your examination has expired. Please start again." }, { status: 401 });
     }
-    if (session.submittedIncidentIds.length !== 15 || session.answers.length !== 15) {
+    const answeredIncidentIds = new Set(session.answers.map((answer) => answer.incidentId));
+    const allSelectedIncidentsAnswered = session.incidents.every((incident) => answeredIncidentIds.has(incident.incidentId));
+    if (session.answers.length !== 15 || answeredIncidentIds.size !== 15 || !allSelectedIncidentsAnswered) {
       return NextResponse.json({ error: "You must complete all 15 incidents before receiving a final result." }, { status: 409 });
     }
 
