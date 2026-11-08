@@ -1,16 +1,10 @@
 import { NextResponse } from "next/server";
 import { getPublishedIncidents } from "@/lib/google-sheets";
 import { getPublicQuizSession, updatePublicQuizSession } from "@/lib/public-quiz-session";
-import type { PenaltyType } from "@/lib/incidents/types";
+import { calculateIncidentScore, publicOutcomeForPenalty } from "@/lib/quiz-scoring";
 
 const validResponsibilities = ["driver-a", "driver-b", "racing-incident"] as const;
 const validOutcomes = ["no-further-action", "penalty", "disqualified"] as const;
-
-function publicOutcome(penalty: PenaltyType): (typeof validOutcomes)[number] {
-  if (penalty === "no-further-action") return "no-further-action";
-  if (penalty === "disqualification") return "disqualified";
-  return "penalty";
-}
 
 export async function POST(request: Request) {
   const origin = request.headers.get("origin");
@@ -76,11 +70,12 @@ export async function POST(request: Request) {
     const responsibilityCorrect = responsibilityScorable
       ? originalResponsibility === decision.responsibility
       : null;
-    const outcomeCorrect = selectedOutcome === publicOutcome(decision.penalty);
-    const earnedPoints =
-      (responsibilityScorable && responsibilityCorrect ? 15 : 0) +
-      (outcomeCorrect ? 10 : 0);
-    const maximumPoints = (responsibilityScorable ? 15 : 0) + 10;
+    const outcomeCorrect = selectedOutcome === publicOutcomeForPenalty(decision.penalty);
+    const { earnedPoints, maximumPoints } = calculateIncidentScore({
+      responsibilityScorable,
+      responsibilityCorrect,
+      outcomeCorrect,
+    });
 
     let displayedOfficialResponsibility = decision.responsibility;
     if (sessionIncident.driversSwapped && (decision.responsibility === "driver-a" || decision.responsibility === "driver-b")) {
@@ -107,7 +102,7 @@ export async function POST(request: Request) {
         maximumPoints,
         officialResponsibility: displayedOfficialResponsibility,
         officialPenalty: decision.penalty,
-        officialOutcome: publicOutcome(decision.penalty),
+        officialOutcome: publicOutcomeForPenalty(decision.penalty),
         penaltyDetails: decision.penaltyDetails ?? null,
         explanation: decision.explanation,
         sources: incident.sources.map((source) => ({
