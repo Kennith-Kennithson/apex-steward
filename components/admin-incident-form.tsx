@@ -421,7 +421,7 @@ export default function AdminIncidentForm({
         <SectionHeading
           number="04"
           title="Official stewards' decision"
-          description="Record the actual official finding and penalty."
+          description="Record the actual official finding and detailed penalty. The public quiz automatically maps this to its simpler three-outcome question."
         />
         <div className="space-y-5 p-5 sm:p-7">
           <Field label="Responsibility finding">
@@ -444,7 +444,7 @@ export default function AdminIncidentForm({
           </label>
 
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Penalty">
+            <Field label="Official penalty (full record)">
               <select name="penalty" className={inputClass} required>
                 <option value="no-further-action">No further action</option>
                 <option value="warning">Warning</option>
@@ -463,6 +463,10 @@ export default function AdminIncidentForm({
               <input name="penaltyDetails" className={inputClass} placeholder="e.g. 10 seconds" maxLength={200} />
             </Field>
           </div>
+
+          <p className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-4 text-xs leading-relaxed text-blue-200/80">
+            Public quiz outcome mapping: <strong>No further action</strong> becomes “No penalty / no further action”; <strong>Disqualification</strong> becomes “Disqualified”; every other official penalty type becomes “Penalty”. The full official penalty and details remain stored here for historical accuracy.
+          </p>
 
           <Field label="Official explanation">
             <textarea name="explanation" className={inputClass} rows={5} maxLength={2000} required placeholder="Summarise the official stewards' reasoning..." />
