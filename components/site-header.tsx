@@ -11,7 +11,7 @@ export default function SiteHeader() {
 
       <nav>
         <Link href="/#how-it-works">THE EXAM</Link>
-        <Link href="/#leaderboard">LEADERBOARD</Link>
+        <Link href="/leaderboard">LEADERBOARD</Link>
         <Link href="/#about">ABOUT</Link>
       </nav>
 
