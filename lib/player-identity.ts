@@ -22,6 +22,11 @@ export async function createOrReadPlayerToken(): Promise<string> {
   return token;
 }
 
+export async function createOrReadPlayerTokenHash(): Promise<string> {
+  const token = await createOrReadPlayerToken();
+  return createHash("sha256").update(token).digest("hex");
+}
+
 export async function getPlayerTokenHash(): Promise<string | null> {
   const store = await cookies();
   const token = store.get(COOKIE_NAME)?.value;
