@@ -148,5 +148,8 @@ export function generateCallsign(): string {
     crypto.getRandomValues(values);
     return values[0] % max;
   };
-  return `${adjectives[randomIndex(adjectives.length)].trim()}${nouns[randomIndex(nouns.length)]}${String(randomIndex(1000)).padStart(3, "0")}`;
+  const adjective = adjectives[randomIndex(adjectives.length)].trim().slice(0, 6);
+  const noun = nouns[randomIndex(nouns.length)].slice(0, 6);
+  const suffix = randomIndex(36 ** 4).toString(36).padStart(4, "0");
+  return `${adjective}${noun}${suffix}`;
 }
