@@ -133,6 +133,14 @@ export default function AdminIncidentForm({
       responsibilityCheckbox.checked =
         initialData.officialDecision.responsibilityIsScorable;
     }
+
+    const permanentlyMutedCheckbox = formRef.current.elements.namedItem(
+      "permanentlyMuted"
+    ) as HTMLInputElement | null;
+    if (permanentlyMutedCheckbox) {
+      permanentlyMutedCheckbox.checked =
+        initialData.video?.permanentlyMuted === true;
+    }
   }, [initialData]);
   
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -198,6 +206,7 @@ export default function AdminIncidentForm({
             url: value("videoUrl"),
             provider: value("videoProvider"),
             permission: value("videoPermission"),
+            permanentlyMuted: form.get("permanentlyMuted") === "on",
           }
         : undefined,
     };
@@ -522,6 +531,14 @@ export default function AdminIncidentForm({
               </select>
             </Field>
           </div>
+
+          <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-white/10 bg-black/20 p-4 text-sm text-neutral-300">
+            <input type="checkbox" name="permanentlyMuted" className="mt-0.5 h-4 w-4 accent-red-600" />
+            <span>
+              <span className="block font-semibold text-white">Permanently mute this incident</span>
+              <span className="mt-1 block text-xs leading-relaxed text-neutral-500">Players will not be able to turn the audio on for this video.</span>
+            </span>
+          </label>
 
           <p className="rounded-lg border border-yellow-500/20 bg-yellow-500/5 p-4 text-xs leading-relaxed text-yellow-300/80">
             Adding a video URL does not mean permission has been granted. Leave the URL blank if you do not have one.
