@@ -51,7 +51,6 @@ export async function POST(request: Request) {
 
     await startPublicQuizSession({
       incidents: sessionIncidents,
-      submittedIncidentIds: [],
       answers: [],
       startedAtMs: Date.now(),
       callsign: mode === "private" ? null : callsign as string,
