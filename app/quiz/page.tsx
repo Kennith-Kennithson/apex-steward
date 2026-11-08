@@ -231,7 +231,11 @@ export default function QuizPage() {
             <h2 className="mb-4 text-lg font-black uppercase">Incident classification</h2>
             <div className="space-y-2">
               {answers.map((answer, index) => <div key={answer.incidentId} className="flex items-center justify-between gap-4 rounded-lg border border-white/10 bg-black/20 p-3">
-                <div className="min-w-0"><p className="truncate text-sm font-semibold">{String(index + 1).padStart(2, "0")} · {answer.incidentTitle}</p><p className="mt-1 text-xs text-neutral-500">{answer.responsibilityAnswer.replaceAll("-", " ")} / {answer.outcomeAnswer.replaceAll("-", " ")}</p></div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold">{String(index + 1).padStart(2, "0")} · {answer.incidentTitle}</p>
+                  <p className="mt-1 text-xs text-neutral-400">Driver: {answer.responsibilityAnswer} · {answer.responsibilityCorrect === null ? "Not scored" : answer.responsibilityCorrect ? "Correct" : `Official: ${answer.officialResponsibility}`}</p>
+                  <p className="mt-1 text-xs text-neutral-400">Outcome: {answer.outcomeAnswer} · {answer.outcomeCorrect ? "Correct" : `Official: ${answer.officialOutcome}`}</p>
+                </div>
                 <p className="shrink-0 font-black">{answer.earnedPoints}/{answer.maximumPoints}</p>
               </div>)}
             </div>
