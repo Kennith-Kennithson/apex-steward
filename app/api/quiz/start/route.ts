@@ -3,7 +3,7 @@ import { getPublishedIncidents } from "@/lib/google-sheets";
 import { selectQuizIncidents } from "@/lib/incidents/quiz-selection";
 import { startPublicQuizSession } from "@/lib/public-quiz-session";
 import { isCallsignAvailableForPlayer } from "@/lib/leaderboard";
-import { createOrReadPlayerToken, getPlayerTokenHash } from "@/lib/player-identity";
+import { createOrReadPlayerTokenHash, getPlayerTokenHash } from "@/lib/player-identity";
 
 function validCallsign(value: unknown): value is string {
   return typeof value === "string" && /^[A-Za-z0-9_-]{3,16}$/.test(value);
@@ -36,8 +36,7 @@ export async function POST(request: Request) {
     }
 
     if (leaderboardOptIn && validCallsign(callsign)) {
-      await createOrReadPlayerToken();
-      const playerTokenHash = await getPlayerTokenHash();
+      const playerTokenHash = await createOrReadPlayerTokenHash();
       if (!(await isCallsignAvailableForPlayer(callsign, playerTokenHash))) {
         return NextResponse.json({ error: "That callsign is already on the leaderboard. Please choose another." }, { status: 409 });
       }
