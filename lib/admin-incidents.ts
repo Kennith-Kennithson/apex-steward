@@ -88,6 +88,7 @@ type CreateIncidentInput = {
     url: string;
     provider: string;
     permission: VideoPermission;
+    permanentlyMuted: boolean;
   };
 };
 
@@ -278,6 +279,7 @@ function parseInput(value: unknown): CreateIncidentInput {
       url: validHttpUrl(value.video.url, "Video URL"),
       provider: requiredText(value.video.provider, "Video provider", 100),
       permission: value.video.permission,
+      permanentlyMuted: value.video.permanentlyMuted === true,
     };
   }
 
@@ -464,6 +466,7 @@ export async function updateAdminIncident(
     video_permission: incident.video?.permission ?? "not-cleared",
     updated_at: now,
     summary: incident.summary ?? "",
+    video_permanently_muted: incident.video?.permanentlyMuted ?? false,
   });
 
   // Update the existing driver records using their permanent IDs.
