@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { getPublishedIncidents } from "@/lib/google-sheets";
 import { selectQuizIncidents } from "@/lib/incidents/quiz-selection";
 import { startPublicQuizSession } from "@/lib/public-quiz-session";
-import { isCallsignAvailable } from "@/lib/leaderboard";
-import { createOrReadPlayerToken } from "@/lib/player-identity";
+import { isCallsignAvailableForPlayer } from "@/lib/leaderboard";
+import { createOrReadPlayerToken, getPlayerTokenHash } from "@/lib/player-identity";
 
 function validCallsign(value: unknown): value is string {
   return typeof value === "string" && /^[A-Za-z0-9_-]{3,16}$/.test(value);
@@ -35,11 +35,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Use a callsign of 3–16 letters, numbers, underscores or hyphens." }, { status: 400 });
     }
 
-    if (leaderboardOptIn && validCallsign(callsign)) {
-      if (!(await isCallsignAvailable(callsign))) {
+    if (mode !== "private" && validCallsign(callsign)) {
+      let playerTokenHash: string | null = null;
+      if (leaderboardOptIn) {
+        await createOrReadPlayerToken();
+        playerTokenHash = await getPlayerTokenHash();
+      }
+      if (!(await isCallsignAvailableForPlayer(callsign, playerTokenHash))) {
         return NextResponse.json({ error: "That callsign is already on the leaderboard. Please choose another." }, { status: 409 });
       }
-      await createOrReadPlayerToken();
     }
 
     const incidents = await getPublishedIncidents();
