@@ -28,7 +28,9 @@ export interface QuizAnswerSummary {
   incidentId: string;
   incidentTitle: string;
   responsibilityAnswer: string;
+  officialResponsibility: string;
   outcomeAnswer: string;
+  officialOutcome: string;
   earnedPoints: number;
   maximumPoints: number;
   responsibilityCorrect: boolean | null;
@@ -101,8 +103,10 @@ export default function ExamScreen({
       onAnswerResult?.({
         incidentId,
         incidentTitle,
-        responsibilityAnswer: responsibility,
-        outcomeAnswer: outcome,
+        responsibilityAnswer: responsibilityLabel(responsibility, driverA.name, driverB.name),
+        officialResponsibility: responsibilityLabel(checked.officialResponsibility, driverA.name, driverB.name),
+        outcomeAnswer: outcomeLabel(outcome),
+        officialOutcome: outcomeLabel(checked.officialOutcome),
         earnedPoints: checked.earnedPoints,
         maximumPoints: checked.maximumPoints,
         responsibilityCorrect: checked.responsibilityCorrect,
