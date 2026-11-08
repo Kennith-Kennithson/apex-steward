@@ -19,7 +19,17 @@ export async function POST(request: Request) {
     const answeredIncidentIds = new Set(session.answers.map((answer) => answer.incidentId));
     const allSelectedIncidentsAnswered = session.incidents.every((incident) => answeredIncidentIds.has(incident.incidentId));
     if (session.answers.length !== 15 || answeredIncidentIds.size !== 15 || !allSelectedIncidentsAnswered) {
-      return NextResponse.json({ error: "You must complete all 15 incidents before receiving a final result." }, { status: 409 });
+      console.error("Quiz completion count mismatch:", {
+        answerCount: session.answers.length,
+        uniqueAnswerCount: answeredIncidentIds.size,
+        selectedIncidentCount: session.incidents.length,
+        answeredSelectedIncidentCount: session.incidents.filter((incident) => answeredIncidentIds.has(incident.incidentId)).length,
+      });
+      return NextResponse.json({
+        error: "Quiz progress check: " + session.answers.length + " answers saved, " +
+          answeredIncidentIds.size + " unique incidents answered, " +
+          session.incidents.length + " incidents selected. Please share this message with support.",
+      }, { status: 409 });
     }
 
     const championshipPoints = session.answers.reduce((total, answer) => total + answer.earnedPoints, 0);
