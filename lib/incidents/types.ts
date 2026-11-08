@@ -70,6 +70,7 @@ export interface IncidentVideo {
   url: string;
   provider: string;
   permission: VideoPermission;
+  permanentlyMuted?: boolean;
 }
 
 export interface IncidentDecision {
