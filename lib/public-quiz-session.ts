@@ -2,6 +2,7 @@ import "server-only";
 
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
+import { deflateRawSync, inflateRawSync } from "node:zlib";
 
 const COOKIE_NAME = "apex_public_quiz";
 const SESSION_DURATION_SECONDS = 2 * 60 * 60;
@@ -35,7 +36,7 @@ function encryptSession(session: PublicQuizSession): string {
   const iv = randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", getEncryptionKey(), iv);
   const encrypted = Buffer.concat([
-    cipher.update(JSON.stringify(session), "utf8"),
+    cipher.update(deflateRawSync(Buffer.from(JSON.stringify(session), "utf8")),
     cipher.final(),
   ]);
   return Buffer.concat([iv, cipher.getAuthTag(), encrypted]).toString("base64url");
@@ -51,7 +52,7 @@ function decryptSession(value: string): PublicQuizSession | null {
       decipher.update(data.subarray(28)),
       decipher.final(),
     ]);
-    const session = JSON.parse(decrypted.toString("utf8")) as PublicQuizSession;
+    const session = JSON.parse(inflateRawSync(decrypted).toString("utf8")) as PublicQuizSession;
     if (
       !Array.isArray(session.incidents) ||
       session.incidents.length !== 15 ||
