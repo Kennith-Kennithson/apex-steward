@@ -2,6 +2,8 @@ import type { PenaltyType } from "@/lib/incidents/types";
 
 export type PublicQuizOutcome = "no-further-action" | "penalty" | "disqualified";
 
+export const MAX_POINTS_PER_INCIDENT = 25;
+
 export function publicOutcomeForPenalty(penalty: PenaltyType): PublicQuizOutcome {
   if (penalty === "no-further-action") return "no-further-action";
   if (penalty === "disqualification") return "disqualified";
@@ -16,7 +18,7 @@ export function calculateIncidentScore(input: {
   const outcomePoints = input.outcomeCorrect ? 10 : 0;
   return {
     earnedPoints: responsibilityPoints + outcomePoints,
-    maximumPoints: 25,
+    maximumPoints: MAX_POINTS_PER_INCIDENT,
   };
 }
 
