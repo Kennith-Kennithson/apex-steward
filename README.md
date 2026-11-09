@@ -1,4 +1,4 @@
-# APEX STEWARD — local development
+# Kerbside Stewards — local development
 
 ## Requirements
 
@@ -22,7 +22,7 @@ Keep the existing Google Sheets incident database configuration in your private 
 
 ## Supabase leaderboard setup (Dev Build 0.3)
 
-The incident library remains in Google Sheets. Supabase stores only leaderboard callsigns, a one-way hash of the anonymous browser token, best score, grade, fastest-lap time, and timestamps.
+The incident database remains in Google Sheets. Supabase stores only leaderboard callsigns, a one-way hash of the anonymous browser token, best score, grade, fastest-lap time, and timestamps.
 
 1. Create a free Supabase project at https://supabase.com.
 2. Open the project's SQL Editor.
@@ -50,6 +50,10 @@ After adding the variables, restart the Next.js development server.
 
 ## Scoring
 
-Each incident awards up to 15 points for the responsibility finding and 10 points for the outcome. When responsibility is officially undetermined or marked unscorable, those 15 possible points are excluded from the player's denominator for that incident.
+Each incident awards up to 15 points for the responsibility finding and 10 points for the outcome. The maximum possible score is 25 points per incident.
 
 Scoring rules are versioned as `0.3` in the database so future rule changes can be distinguished from historic results.
+
+## Project identity
+
+The website and project name is **Kerbside Stewards**. The quiz continues to use the existing stewarding-exam terminology during the alpha; a separate quiz name has not yet been selected.
