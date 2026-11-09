@@ -5,7 +5,7 @@ export default function SiteHeader() {
   return (
     <header className="topbar">
       <Link className="brand" href="/">
-        <span className="brand-mark">A</span>
+        <span className="brand-mark">K</span>
         <span>{siteConfig.name}</span>
       </Link>
 
