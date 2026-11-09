@@ -1,11 +1,10 @@
-
 import { siteConfig } from "@/lib/site-config";
 
 export default function SiteFooter() {
   return (
     <footer id="about">
       <div className="footer-brand">
-        <span className="brand-mark">A</span>
+        <span className="brand-mark">K</span>
         <span>{siteConfig.name}</span>
       </div>
 
