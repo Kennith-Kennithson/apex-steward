@@ -4,8 +4,6 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-session";
 
-export const runtime = "nodejs";
-
 const MAX_FILE_SIZE = 250 * 1024 * 1024;
 const ALLOWED_TYPES = new Set([
   "video/mp4",
