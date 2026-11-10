@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 
 import AdminIncidentTable from "@/components/admin-incident-table";
 import AdminLogoutButton from "@/components/admin-logout-button";
+import { getR2StorageUsage } from "@/lib/cloudflare-r2";
 
 import { isAdminAuthenticated } from "@/lib/admin-session";
 import {
@@ -24,6 +25,13 @@ async function AdminDashboardContent() {
 
   const overview = await getIncidentOverview();
   const incidents = await getAdminIncidentList();
+  let r2Storage: Awaited<ReturnType<typeof getR2StorageUsage>> | null = null;
+  let r2StorageError = false;
+  try {
+    r2Storage = await getR2StorageUsage();
+  } catch {
+    r2StorageError = true;
+  }
 
   const stats = [
     {
@@ -91,6 +99,44 @@ async function AdminDashboardContent() {
             </div>
           </div>
         </header>
+
+        {/* R2 STORAGE MONITOR */}
+        <section className="mb-6 rounded-xl border border-neutral-800 bg-[#181a1e] p-6 sm:p-8">
+          <div className="flex flex-wrap items-start justify-between gap-5">
+            <div>
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-blue-400">Cloudflare R2</p>
+              <h2 className="text-2xl font-bold">Video storage</h2>
+              <p className="mt-2 max-w-lg text-sm leading-6 text-neutral-400">10 GB storage limit · Usage is calculated from the objects currently in your video bucket.</p>
+            </div>
+            {r2Storage ? (
+              <div className="text-left sm:text-right">
+                <p className="text-3xl font-black tabular-nums">{(r2Storage.usedBytes / (1024 * 1024 * 1024)).toFixed(2)} <span className="text-base font-semibold text-neutral-400">/ 10 GB</span></p>
+                <p className="mt-1 text-sm text-neutral-400">{(r2Storage.availableBytes / (1024 * 1024 * 1024)).toFixed(2)} GB remaining · {r2Storage.objectCount} files</p>
+              </div>
+            ) : (
+              <p role="alert" className="max-w-md text-sm text-red-400">Storage usage unavailable. Uploads will be blocked until the R2 bucket can be checked.</p>
+            )}
+          </div>
+          {r2Storage && (
+            <>
+              <div className="mt-5 h-3 overflow-hidden rounded-full bg-neutral-800">
+                <div
+                  className={`h-full rounded-full transition-all ${r2Storage.percentUsed >= 90 ? "bg-red-500" : r2Storage.percentUsed >= 80 ? "bg-amber-400" : "bg-blue-500"}`}
+                  style={{ width: `${Math.min(100, r2Storage.percentUsed)}%` }}
+                />
+              </div>
+              <div className="mt-2 flex justify-between text-xs text-neutral-500">
+                <span>{r2Storage.percentUsed.toFixed(1)}% used</span>
+                <span>10 GB maximum</span>
+              </div>
+              {r2Storage.percentUsed >= 90 ? (
+                <p className="mt-4 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">Critical: storage is at least 90% full. Remove videos before uploading more.</p>
+              ) : r2Storage.percentUsed >= 80 ? (
+                <p className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">Warning: storage is at least 80% full. Keep an eye on remaining capacity.</p>
+              ) : null}
+            </>
+          )}
+        </section>
 
         {/* ADMIN QUIZ TESTING */}
         <section className="mb-6 rounded-xl border border-amber-900/40 bg-[#1d1a13] p-6 sm:p-8">
