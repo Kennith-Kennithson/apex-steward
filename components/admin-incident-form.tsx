@@ -646,7 +646,7 @@ export default function AdminIncidentForm({
 
         <button
           type="submit"
-          disabled={saving}
+          disabled={saving || uploading}
           className="rounded-lg bg-red-600 px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-950/30 transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
         >
                     {saving
