@@ -44,19 +44,30 @@ export async function POST(request: Request) {
       if (!playerTokenHash) {
         return NextResponse.json({ error: "Your browser identification is unavailable. Please restart the quiz if you want to submit to the leaderboard." }, { status: 409 });
       }
-      await submitLeaderboardResult({
-        callsign: session.callsign,
-        playerTokenHash,
-        championshipPoints,
-        maximumPoints,
-        percentage: Number(percentage.toFixed(2)),
-        grade,
-        fastestLapMs,
-      });
-      leaderboardStatus = "saved";
+      try {
+        await submitLeaderboardResult({
+          callsign: session.callsign,
+          playerTokenHash,
+          championshipPoints,
+          maximumPoints,
+          percentage: Number(percentage.toFixed(2)),
+          grade,
+          fastestLapMs,
+        });
+        leaderboardStatus = "saved";
+      } catch (error) {
+        const message = error instanceof Error ? error.message.toLowerCase() : "";
+        if (message.includes("already on the leaderboard") || message.includes("different callsign")) {
+          leaderboardStatus = "callsign-conflict";
+        } else {
+          throw error;
+        }
+      }
     }
 
-    await clearPublicQuizSession();
+    if (leaderboardStatus !== "callsign-conflict") {
+      await clearPublicQuizSession();
+    }
 
     return NextResponse.json({
       result: {
@@ -70,10 +81,6 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "";
-    if (message.includes("already on the leaderboard") || message.includes("different callsign")) {
-      return NextResponse.json({ error: message }, { status: 409 });
-    }
     console.error("Quiz completion failed:", error);
     return NextResponse.json({ error: "Unable to calculate or save your final result." }, { status: 503 });
   }
