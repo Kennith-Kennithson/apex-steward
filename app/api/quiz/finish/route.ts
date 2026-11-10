@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPublicQuizSession, clearPublicQuizSession } from "@/lib/public-quiz-session";
+import { getPublicQuizSession, clearPublicQuizSession, updatePublicQuizSession } from "@/lib/public-quiz-session";
 import { getPlayerTokenHash } from "@/lib/player-identity";
 import { submitLeaderboardResult } from "@/lib/leaderboard";
 
@@ -36,7 +36,8 @@ export async function POST(request: Request) {
     const maximumPoints = session.incidents.length * MAX_POINTS_PER_INCIDENT;
     const percentage = maximumPoints > 0 ? (championshipPoints / maximumPoints) * 100 : 0;
     const grade = gradeForPercentage(percentage);
-    const fastestLapMs = Math.max(1, Date.now() - session.startedAtMs);
+    const completedAtMs = Date.now();
+    const fastestLapMs = Math.max(1, completedAtMs - session.startedAtMs);
 
     let leaderboardStatus: "private" | "saved" | "unavailable" = "private";
     if (session.leaderboardOptIn && session.callsign) {
@@ -65,7 +66,9 @@ export async function POST(request: Request) {
       }
     }
 
-    if (leaderboardStatus !== "callsign-conflict") {
+    if (leaderboardStatus === "callsign-conflict") {
+      await updatePublicQuizSession({ ...session, completedAtMs });
+    } else {
       await clearPublicQuizSession();
     }
 
