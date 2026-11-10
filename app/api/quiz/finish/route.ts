@@ -58,7 +58,7 @@ export async function POST(request: Request) {
         leaderboardStatus = "saved";
       } catch (error) {
         const message = error instanceof Error ? error.message.toLowerCase() : "";
-        if (message === "That callsign is already on the leaderboard") {
+        if (message === "that callsign is already on the leaderboard") {
           leaderboardStatus = "callsign-conflict";
         } else {
           throw error;
