@@ -96,10 +96,23 @@ export async function submitLeaderboardResult(input: {
 
   if (!response.ok) {
     const detail = await response.text();
-    if (detail.toLowerCase().includes("callsign")) {
-      throw new Error("That callsign is already on the leaderboard. Please choose another.");
+    let databaseMessage = "";
+    try {
+      const parsed = JSON.parse(detail) as { message?: unknown };
+      if (typeof parsed.message === "string") databaseMessage = parsed.message;
+    } catch {
+      // Keep database details private; an unrecognised response is not a callsign collision.
     }
-    throw new Error("Your result could not be saved to the leaderboard.");
+
+    if (databaseMessage === "That callsign is already on the leaderboard") {
+      throw new Error(databaseMessage);
+    }
+    if (databaseMessage === "This browser is already associated with a different callsign") {
+      throw new Error(databaseMessage);
+    }
+
+    console.error("Leaderboard RPC failed:", response.status, databaseMessage || "Unrecognised database error");
+    throw new Error("Your result could not be saved to the leaderboard. Please try again later.");
   }
 
   const rows = await response.json() as LeaderboardEntry[];
