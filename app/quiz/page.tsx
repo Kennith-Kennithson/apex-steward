@@ -28,7 +28,7 @@ interface FinalResult {
   percentage: number;
   grade: string;
   fastestLapMs: number;
-  leaderboardStatus: "private" | "saved";
+  leaderboardStatus: "private" | "saved" | "callsign-conflict";
   callsign: string | null;
 }
 
@@ -62,6 +62,8 @@ export default function QuizPage() {
   const [answers, setAnswers] = useState<QuizAnswerSummary[]>([]);
   const [error, setError] = useState("");
   const [finishError, setFinishError] = useState("");
+  const [replacementCallsign, setReplacementCallsign] = useState("");
+  const [replacementSubmitting, setReplacementSubmitting] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
 
   useEffect(() => {
@@ -152,6 +154,33 @@ export default function QuizPage() {
     }
   }
 
+  async function submitReplacementCallsign() {
+    if (!/^[a-zA-Z0-9_-]{3,16}$/.test(replacementCallsign.trim())) {
+      setFinishError("Use 3–16 characters. Letters, numbers, underscores and hyphens only.");
+      return;
+    }
+    setReplacementSubmitting(true);
+    setFinishError("");
+    try {
+      const response = await fetch("/api/quiz/leaderboard-resubmit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ callsign: replacementCallsign.trim() }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Unable to submit your result.");
+      setFinalResult((previous) => previous ? {
+        ...previous,
+        leaderboardStatus: "saved",
+        callsign: data.callsign,
+      } : previous);
+    } catch (cause) {
+      setFinishError(cause instanceof Error ? cause.message : "Unable to submit your result.");
+    } finally {
+      setReplacementSubmitting(false);
+    }
+  }
+
   function changeMode(newMode: PlayerMode) {
     setMode(newMode);
     setError("");
@@ -222,9 +251,23 @@ export default function QuizPage() {
               <div><p className="text-xs uppercase tracking-wider text-neutral-500">Championship points</p><p className="mt-1 text-2xl font-black">{finalResult.championshipPoints} / {finalResult.maximumPoints}</p></div>
               <div><p className="text-xs uppercase tracking-wider text-neutral-500">Fastest lap</p><p className="mt-1 text-2xl font-black">{formatLap(finalResult.fastestLapMs)}</p></div>
             </div>
-            {finalResult.leaderboardStatus === "saved"
-              ? <p className="mt-5 text-sm text-green-400">Your best result has been submitted to the global leaderboard as {finalResult.callsign}.</p>
-              : <p className="mt-5 text-sm text-neutral-400">This was a private result and has not been added to the leaderboard.</p>}
+            {finalResult.leaderboardStatus === "saved" ? (
+              <p className="mt-5 text-sm text-green-400">Your best result has been submitted to the global leaderboard as {finalResult.callsign}.</p>
+            ) : finalResult.leaderboardStatus === "callsign-conflict" ? (
+              <div className="mt-5 rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
+                <p className="text-sm font-semibold text-amber-200">Your result is safe, but that callsign is already in use.</p>
+                <p className="mt-2 text-xs text-neutral-300">Choose a different callsign below to submit this same result. You do not need to retake the quiz.</p>
+                <label htmlFor="replacement-callsign" className="mt-4 block text-xs font-bold uppercase tracking-wider text-neutral-300">New callsign</label>
+                <input id="replacement-callsign" type="text" value={replacementCallsign} onChange={(event) => setReplacementCallsign(event.target.value)} maxLength={16} placeholder="Enter a new callsign" className="mt-2 w-full rounded-md border border-white/20 bg-black/40 px-3 py-3 text-white" />
+                <p className="mt-1 text-xs text-neutral-500">3–16 characters. Letters, numbers, underscores and hyphens only.</p>
+                {finishError && <p className="mt-3 text-sm text-red-400" role="alert">{finishError}</p>}
+                <button type="button" className="primary-button mt-4" onClick={submitReplacementCallsign} disabled={replacementSubmitting || !replacementCallsign.trim()}>
+                  {replacementSubmitting ? "SUBMITTING..." : "SUBMIT MY RESULT"} <span>→</span>
+                </button>
+              </div>
+            ) : (
+              <p className="mt-5 text-sm text-neutral-400">This was a private result and has not been added to the leaderboard.</p>
+            )}
           </div>
 
           <div className="my-8 text-left">
@@ -240,7 +283,7 @@ export default function QuizPage() {
               </div>)}
             </div>
           </div>
-          <a href="/leaderboard" className="secondary-button inline-flex">VIEW GLOBAL LEADERBOARD</a>
+          {finalResult.leaderboardStatus !== "callsign-conflict" && <a href="/leaderboard" className="secondary-button inline-flex">VIEW GLOBAL LEADERBOARD</a>}
           <button type="button" className="primary-button quiz-continue" onClick={resetQuiz}>RETURN TO START <span>→</span></button>
         </div>
       </main>
