@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getPublishedIncidents } from "@/lib/google-sheets";
 import { selectQuizIncidents } from "@/lib/incidents/quiz-selection";
 import { startPublicQuizSession } from "@/lib/public-quiz-session";
+import { createOrReadPlayerTokenHash } from "@/lib/player-identity";
 
 function validCallsign(value: unknown): value is string {
   return typeof value === "string" && /^[A-Za-z0-9_-]{3,16}$/.test(value);
@@ -31,6 +32,10 @@ export async function POST(request: Request) {
     }
     if (mode !== "private" && !validCallsign(callsign)) {
       return NextResponse.json({ error: "Use a callsign of 3–16 letters, numbers, underscores or hyphens." }, { status: 400 });
+    }
+
+    if (leaderboardOptIn) {
+      await createOrReadPlayerTokenHash();
     }
 
     const incidents = await getPublishedIncidents();
