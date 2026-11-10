@@ -3,6 +3,7 @@ import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-session";
+import { getR2StorageUsage, R2_STORAGE_LIMIT_BYTES } from "@/lib/cloudflare-r2";
 
 const MAX_FILE_SIZE = 250 * 1024 * 1024;
 const ALLOWED_TYPES = new Set([
@@ -79,6 +80,25 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Choose an MP4, WebM or QuickTime video no larger than 250 MB." },
         { status: 400 },
+      );
+    }
+
+    let storageUsage;
+    try {
+      storageUsage = await getR2StorageUsage();
+    } catch {
+      return NextResponse.json(
+        { error: "Unable to check Cloudflare R2 storage. Upload blocked for safety; check the R2 credentials and bucket permissions." },
+        { status: 503 },
+      );
+    }
+
+    if (storageUsage.usedBytes + body.size > R2_STORAGE_LIMIT_BYTES) {
+      const availableMb = Math.max(0, storageUsage.availableBytes / (1024 * 1024));
+      const requestedMb = body.size / (1024 * 1024);
+      return NextResponse.json(
+        { error: `Upload refused: R2 storage is at ${storageUsage.percentUsed.toFixed(1)}% (10 GB limit). Only ${availableMb.toFixed(1)} MB is available, but this video is ${requestedMb.toFixed(1)} MB.` },
+        { status: 413 },
       );
     }
 
