@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     const completedAtMs = Date.now();
     const fastestLapMs = Math.max(1, completedAtMs - session.startedAtMs);
 
-    let leaderboardStatus: "private" | "saved" | "callsign-conflict" = "private";
+    let leaderboardStatus: "private" | "saved" | "callsign-conflict" | "unavailable" = "private";
     if (session.leaderboardOptIn && session.callsign) {
       const playerTokenHash = await getPlayerTokenHash();
       if (!playerTokenHash) {
@@ -61,7 +61,8 @@ export async function POST(request: Request) {
         if (message === "that callsign is already on the leaderboard") {
           leaderboardStatus = "callsign-conflict";
         } else {
-          throw error;
+          console.error("Leaderboard submission failed; returning quiz results anyway:", error);
+          leaderboardStatus = "unavailable";
         }
       }
     }
