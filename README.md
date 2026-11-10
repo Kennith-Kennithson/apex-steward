@@ -1,4 +1,4 @@
-# Kerbside Stewards — local development
+# Kerbside Stewards — Alpha 0.0.1
 
 ## Requirements
 
@@ -20,7 +20,7 @@ Open http://localhost:3000.
 
 Keep the existing Google Sheets incident database configuration in your private `.env.local` file. Never commit the service-account JSON file or `.env.local`.
 
-## Supabase leaderboard setup (Dev Build 0.3)
+## Supabase leaderboard setup
 
 The incident database remains in Google Sheets. Supabase stores only leaderboard callsigns, a one-way hash of the anonymous browser token, best score, grade, fastest-lap time, and timestamps.
 
@@ -52,7 +52,11 @@ After adding the variables, restart the Next.js development server.
 
 Each incident awards up to 15 points for the responsibility finding and 10 points for the outcome. The maximum possible score is 25 points per incident.
 
-Scoring rules are versioned as `0.3` in the database so future rule changes can be distinguished from historic results.
+Scoring rules are versioned independently in the database so future rule changes can be distinguished from historic results.
+
+## Release status
+
+**Alpha 0.0.1** is the first fully functional version of Kerbside Stewards and the baseline for closed-alpha testing. It includes the 15-incident quiz, scoring, anonymous opt-in leaderboard, admin tools and Cloudflare R2 video upload workflow. The 15 incident clips still need to be uploaded and playback-checked before closed-alpha invitations.
 
 ## Project identity
 
