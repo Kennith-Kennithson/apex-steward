@@ -108,7 +108,6 @@ export async function POST(request: Request) {
         Bucket: config.bucket,
         Key: objectKey,
         ContentType: body.contentType,
-        ContentLength: body.size,
       }),
       { expiresIn: 300 },
     );
