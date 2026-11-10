@@ -68,6 +68,9 @@ export default function AdminIncidentForm({
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadMessage, setUploadMessage] = useState("");
   useEffect(() => {
     if (!initialData || !formRef.current) return;
 
@@ -133,6 +136,69 @@ export default function AdminIncidentForm({
     }
   }, [initialData]);
   
+  async function handleVideoUpload(file: File) {
+    setError("");
+    setMessage("");
+    setUploadMessage("");
+    setUploadProgress(0);
+
+    const allowedTypes = ["video/mp4", "video/webm", "video/quicktime"];
+    if (!allowedTypes.includes(file.type)) {
+      setError("Choose an MP4, WebM or QuickTime video.");
+      return;
+    }
+    if (file.size <= 0 || file.size > 250 * 1024 * 1024) {
+      setError("Video must be smaller than 250 MB.");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const signResponse = await fetch("/api/admin/r2-upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type,
+          size: file.size,
+        }),
+      });
+      const signed = await signResponse.json();
+      if (!signResponse.ok) {
+        throw new Error(signed.error ?? "Unable to prepare the video upload.");
+      }
+
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("PUT", signed.uploadUrl);
+        xhr.setRequestHeader("Content-Type", file.type);
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            setUploadProgress(Math.round((event.loaded / event.total) * 100));
+          }
+        };
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) resolve();
+          else reject(new Error("Cloudflare rejected the video upload. Check the bucket CORS settings and try again."));
+        };
+        xhr.onerror = () => reject(new Error("Video upload failed. Check your connection and bucket CORS settings."));
+        xhr.onabort = () => reject(new Error("Video upload was cancelled."));
+        xhr.send(file);
+      });
+
+      const videoUrlField = formRef.current?.elements.namedItem("videoUrl") as HTMLInputElement | null;
+      const providerField = formRef.current?.elements.namedItem("videoProvider") as HTMLInputElement | null;
+      if (videoUrlField) videoUrlField.value = signed.publicUrl;
+      if (providerField) providerField.value = "Cloudflare R2";
+      setUploadProgress(100);
+      setUploadMessage("Upload complete. The video URL has been added to this incident. Save the incident to keep the reference.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Video upload failed.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formElement = event.currentTarget;
@@ -497,6 +563,32 @@ export default function AdminIncidentForm({
           description="Optional footage reference for the incident."
         />
         <div className="space-y-5 p-5 sm:p-7">
+          <div className="rounded-lg border border-white/10 bg-black/20 p-4">
+            <label className={labelClass} htmlFor="incident-video-upload">Upload video to Cloudflare R2</label>
+            <input
+              id="incident-video-upload"
+              type="file"
+              accept="video/mp4,video/webm,video/quicktime"
+              disabled={uploading || saving}
+              onChange={(event) => {
+                const file = event.currentTarget.files?.[0];
+                if (file) void handleVideoUpload(file);
+                event.currentTarget.value = "";
+              }}
+              className="block w-full text-sm text-neutral-300 file:mr-4 file:rounded-lg file:border-0 file:bg-red-600 file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-white hover:file:bg-red-500 disabled:opacity-50"
+            />
+            <p className="mt-2 text-xs text-neutral-500">MP4, WebM or MOV · maximum 250 MB. Uploading makes the video publicly viewable by anyone with its URL.</p>
+            {uploading && (
+              <div className="mt-3">
+                <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                  <div className="h-full rounded-full bg-red-500 transition-all" style={{ width: `${uploadProgress}%` }} />
+                </div>
+                <p className="mt-1 text-xs text-neutral-400">Uploading video: {uploadProgress}%</p>
+              </div>
+            )}
+            {uploadMessage && <p role="status" className="mt-3 text-sm text-green-400">{uploadMessage}</p>}
+          </div>
+
           <Field label="Video URL">
             <input name="videoUrl" type="url" className={inputClass} placeholder="https://..." maxLength={2048} />
           </Field>
