@@ -32,7 +32,6 @@ function createTestIncident(id: number): Incident {
     },
     officialDecision: {
       responsibility: "driver-a",
-      responsibilityIsScorable: true,
       penalty: "warning",
       explanation: "Fictional test decision.",
     },

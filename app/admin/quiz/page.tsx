@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 
 import { connection } from "next/server";
 import { redirect } from "next/navigation";
@@ -5,7 +6,7 @@ import { redirect } from "next/navigation";
 import { isAdminAuthenticated } from "@/lib/admin-session";
 import AdminQuizLauncher from "@/components/admin-quiz-launcher";
 
-export default async function AdminQuizPage() {
+async function AdminQuizContent() {
   await connection();
 
   const authenticated = await isAdminAuthenticated();
@@ -43,5 +44,14 @@ export default async function AdminQuizPage() {
         <AdminQuizLauncher />
       </div>
     </main>
+  );
+}
+
+
+export default function AdminQuizPage() {
+  return (
+    <Suspense fallback={<main className="min-h-screen bg-[#101113] px-5 py-12 text-neutral-400">Loading administrator quiz...</main>}>
+      <AdminQuizContent />
+    </Suspense>
   );
 }

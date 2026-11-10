@@ -35,7 +35,6 @@ const RESPONSIBILITIES = [
   "driver-a",
   "driver-b",
   "racing-incident",
-  "not-determined",
 ] as const;
 const PENALTIES = [
   "no-further-action",
@@ -78,7 +77,6 @@ type CreateIncidentInput = {
   summary?: string;
   officialDecision: {
     responsibility: ResponsibilityFinding;
-    responsibilityIsScorable: boolean;
     penalty: PenaltyType;
     penaltyDetails?: string;
     explanation: string;
@@ -88,6 +86,7 @@ type CreateIncidentInput = {
     url: string;
     provider: string;
     permission: VideoPermission;
+    permanentlyMuted: boolean;
   };
 };
 
@@ -215,17 +214,6 @@ function parseInput(value: unknown): CreateIncidentInput {
     throw new Error("Choose a valid responsibility finding.");
   }
 
-  if (typeof decision.responsibilityIsScorable !== "boolean") {
-    throw new Error("Responsibility scorable must be true or false.");
-  }
-
-  if (
-    decision.responsibility === "not-determined" &&
-    decision.responsibilityIsScorable
-  ) {
-    throw new Error("An undetermined responsibility finding cannot be scored.");
-  }
-
   if (!isOneOf(decision.penalty, PENALTIES)) {
     throw new Error("Choose a valid penalty.");
   }
@@ -278,6 +266,7 @@ function parseInput(value: unknown): CreateIncidentInput {
       url: validHttpUrl(value.video.url, "Video URL"),
       provider: requiredText(value.video.provider, "Video provider", 100),
       permission: value.video.permission,
+      permanentlyMuted: value.video.permanentlyMuted === true,
     };
   }
 
@@ -297,7 +286,6 @@ function parseInput(value: unknown): CreateIncidentInput {
     summary: optionalText(value.summary, "Summary", 1000),
     officialDecision: {
       responsibility: decision.responsibility,
-      responsibilityIsScorable: decision.responsibilityIsScorable,
       penalty: decision.penalty,
       penaltyDetails: optionalText(
         decision.penaltyDetails,
@@ -385,7 +373,7 @@ export async function createAdminIncident(
     driverBId,
     incident.title,
     incident.officialDecision.responsibility,
-    incident.officialDecision.responsibilityIsScorable,
+    true,
     incident.officialDecision.penalty,
     incident.officialDecision.penaltyDetails ?? "",
     incident.officialDecision.explanation,
@@ -397,6 +385,10 @@ export async function createAdminIncident(
    now,
 now,
 incident.summary ?? "",
+    true,
+    true,
+    incident.video?.permanentlyMuted ?? false,
+    "[1,0.75,0.5,0.25]",
 ]);
 
   // Record the creation in the audit log.
@@ -454,8 +446,7 @@ export async function updateAdminIncident(
     difficulty: incident.difficulty,
     incident_title: incident.title,
     official_responsibility: incident.officialDecision.responsibility,
-    responsibility_scorable:
-      incident.officialDecision.responsibilityIsScorable,
+    responsibility_scorable: true,
     penalty_type: incident.officialDecision.penalty,
     penalty_details: incident.officialDecision.penaltyDetails ?? "",
     official_explanation: incident.officialDecision.explanation,
@@ -464,6 +455,7 @@ export async function updateAdminIncident(
     video_permission: incident.video?.permission ?? "not-cleared",
     updated_at: now,
     summary: incident.summary ?? "",
+    video_permanently_muted: incident.video?.permanentlyMuted ?? false,
   });
 
   // Update the existing driver records using their permanent IDs.

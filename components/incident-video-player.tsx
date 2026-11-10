@@ -91,6 +91,10 @@ export default function IncidentVideoPlayer({
     video.playbackRate = 1;
     video.muted = true;
 
+    if (permanentlyMuted) {
+      video.muted = true;
+    }
+
     if (autoplayMuted) {
       void video.play().catch(() => {
         // Autoplay may be blocked by the browser.
@@ -101,7 +105,7 @@ export default function IncidentVideoPlayer({
     return () => {
       video.pause();
     };
-  }, [incidentId, safeUrl, autoplayMuted]);
+  }, [incidentId, safeUrl, autoplayMuted, permanentlyMuted]);
 
   function togglePlayback() {
     const video = videoRef.current;
@@ -188,6 +192,14 @@ export default function IncidentVideoPlayer({
           src={safeUrl}
           autoPlay={autoplayMuted}
           muted
+          onVolumeChange={(event) => {
+            const video = event.currentTarget;
+            if (permanentlyMuted && !video.muted) {
+              video.muted = true;
+              return;
+            }
+            setMuted(video.muted);
+          }}
           loop={loop}
           playsInline
           preload="metadata"

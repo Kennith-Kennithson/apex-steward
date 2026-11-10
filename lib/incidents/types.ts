@@ -21,8 +21,7 @@ export type Difficulty = "beginner" | "intermediate" | "advanced";
 export type ResponsibilityFinding =
   | "driver-a"
   | "driver-b"
-  | "racing-incident"
-  | "not-determined";
+  | "racing-incident";
 
 export type PenaltyType =
   | "no-further-action"
@@ -70,11 +69,11 @@ export interface IncidentVideo {
   url: string;
   provider: string;
   permission: VideoPermission;
+  permanentlyMuted?: boolean;
 }
 
 export interface IncidentDecision {
   responsibility: ResponsibilityFinding;
-  responsibilityIsScorable: boolean;
   penalty: PenaltyType;
   penaltyDetails?: string;
   explanation: string;

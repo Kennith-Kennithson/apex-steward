@@ -29,8 +29,8 @@ export default function Home() {
           </p>
 
           <div className="hero-actions">
-            <a className="primary-button" href="#how-it-works">
-              START STEWARDING EXAM <span>→</span>
+            <a className="primary-button" href="/quiz">
+              PLAY QUIZ <span>→</span>
             </a>
             <a className="secondary-button" href="#about">
               DISCOVER THE PROJECT

@@ -68,6 +68,9 @@ export default function AdminIncidentForm({
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadMessage, setUploadMessage] = useState("");
   useEffect(() => {
     if (!initialData || !formRef.current) return;
 
@@ -124,17 +127,78 @@ export default function AdminIncidentForm({
       if (field) field.value = value;
     }
 
-    const responsibilityCheckbox =
-      formRef.current.elements.namedItem(
-        "responsibilityIsScorable"
-      ) as HTMLInputElement | null;
-
-    if (responsibilityCheckbox) {
-      responsibilityCheckbox.checked =
-        initialData.officialDecision.responsibilityIsScorable;
+    const permanentlyMutedCheckbox = formRef.current.elements.namedItem(
+      "permanentlyMuted"
+    ) as HTMLInputElement | null;
+    if (permanentlyMutedCheckbox) {
+      permanentlyMutedCheckbox.checked =
+        initialData.video?.permanentlyMuted === true;
     }
   }, [initialData]);
   
+  async function handleVideoUpload(file: File) {
+    setError("");
+    setMessage("");
+    setUploadMessage("");
+    setUploadProgress(0);
+
+    const allowedTypes = ["video/mp4", "video/webm", "video/quicktime"];
+    if (!allowedTypes.includes(file.type)) {
+      setError("Choose an MP4, WebM or QuickTime video.");
+      return;
+    }
+    if (file.size <= 0 || file.size > 250 * 1024 * 1024) {
+      setError("Video must be smaller than 250 MB.");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const signResponse = await fetch("/api/admin/r2-upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type,
+          size: file.size,
+        }),
+      });
+      const signed = await signResponse.json();
+      if (!signResponse.ok) {
+        throw new Error(signed.error ?? "Unable to prepare the video upload.");
+      }
+
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("PUT", signed.uploadUrl);
+        xhr.setRequestHeader("Content-Type", file.type);
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            setUploadProgress(Math.round((event.loaded / event.total) * 100));
+          }
+        };
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) resolve();
+          else reject(new Error("Cloudflare rejected the video upload. Check the bucket CORS settings and try again."));
+        };
+        xhr.onerror = () => reject(new Error("Video upload failed. Check your connection and bucket CORS settings."));
+        xhr.onabort = () => reject(new Error("Video upload was cancelled."));
+        xhr.send(file);
+      });
+
+      const videoUrlField = formRef.current?.elements.namedItem("videoUrl") as HTMLInputElement | null;
+      const providerField = formRef.current?.elements.namedItem("videoProvider") as HTMLInputElement | null;
+      if (videoUrlField) videoUrlField.value = signed.publicUrl;
+      if (providerField) providerField.value = "Cloudflare R2";
+      setUploadProgress(100);
+      setUploadMessage("Upload complete. The video URL has been added to this incident. Save the incident to keep the reference.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Video upload failed.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formElement = event.currentTarget;
@@ -176,8 +240,6 @@ export default function AdminIncidentForm({
 
       officialDecision: {
         responsibility: value("responsibility"),
-        responsibilityIsScorable:
-          form.get("responsibilityIsScorable") === "on",
         penalty: value("penalty"),
         penaltyDetails: value("penaltyDetails"),
         explanation: value("explanation"),
@@ -198,6 +260,7 @@ export default function AdminIncidentForm({
             url: value("videoUrl"),
             provider: value("videoProvider"),
             permission: value("videoPermission"),
+            permanentlyMuted: form.get("permanentlyMuted") === "on",
           }
         : undefined,
     };
@@ -412,30 +475,22 @@ export default function AdminIncidentForm({
         <SectionHeading
           number="04"
           title="Official stewards' decision"
-          description="Record the actual official finding and penalty."
+          description="Record the actual official finding and detailed penalty. The public quiz automatically maps this to its simpler three-outcome question."
         />
         <div className="space-y-5 p-5 sm:p-7">
           <Field label="Responsibility finding">
             <select name="responsibility" className={inputClass} required>
-              <option value="not-determined">Not determined</option>
               <option value="driver-a">Driver A</option>
               <option value="driver-b">Driver B</option>
               <option value="racing-incident">Racing incident</option>
             </select>
           </Field>
-
-          <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-white/10 bg-black/20 p-4 text-sm text-neutral-300">
-            <input type="checkbox" name="responsibilityIsScorable" className="mt-0.5 h-4 w-4 accent-red-600" />
-            <span>
-              <span className="block font-semibold text-white">Responsibility finding is suitable for scoring</span>
-              <span className="mt-1 block text-xs leading-relaxed text-neutral-500">
-                Only select this when the official finding clearly establishes responsibility.
-              </span>
-            </span>
-          </label>
+          <p className="text-xs leading-relaxed text-neutral-400">
+            Every responsibility finding is scored. A correct Driver A, Driver B, or Racing incident answer earns 15 points; the outcome is worth another 10. Every incident is worth 25 points maximum.
+          </p>
 
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Penalty">
+            <Field label="Official penalty (full record)">
               <select name="penalty" className={inputClass} required>
                 <option value="no-further-action">No further action</option>
                 <option value="warning">Warning</option>
@@ -454,6 +509,10 @@ export default function AdminIncidentForm({
               <input name="penaltyDetails" className={inputClass} placeholder="e.g. 10 seconds" maxLength={200} />
             </Field>
           </div>
+
+          <p className="rounded-lg border border-blue-500/20 bg-blue-500/5 p-4 text-xs leading-relaxed text-blue-200/80">
+            Public quiz outcome mapping: <strong>No further action</strong> becomes “No penalty / no further action”; <strong>Disqualification</strong> becomes “Disqualified”; every other official penalty type becomes “Penalty”. The full official penalty and details remain stored here for historical accuracy.
+          </p>
 
           <Field label="Official explanation">
             <textarea name="explanation" className={inputClass} rows={5} maxLength={2000} required placeholder="Summarise the official stewards' reasoning..." />
@@ -504,6 +563,32 @@ export default function AdminIncidentForm({
           description="Optional footage reference for the incident."
         />
         <div className="space-y-5 p-5 sm:p-7">
+          <div className="rounded-lg border border-white/10 bg-black/20 p-4">
+            <label className={labelClass} htmlFor="incident-video-upload">Upload video to Cloudflare R2</label>
+            <input
+              id="incident-video-upload"
+              type="file"
+              accept="video/mp4,video/webm,video/quicktime"
+              disabled={uploading || saving}
+              onChange={(event) => {
+                const file = event.currentTarget.files?.[0];
+                if (file) void handleVideoUpload(file);
+                event.currentTarget.value = "";
+              }}
+              className="block w-full text-sm text-neutral-300 file:mr-4 file:rounded-lg file:border-0 file:bg-red-600 file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-white hover:file:bg-red-500 disabled:opacity-50"
+            />
+            <p className="mt-2 text-xs text-neutral-500">MP4, WebM or MOV · maximum 250 MB. Uploading makes the video publicly viewable by anyone with its URL.</p>
+            {uploading && (
+              <div className="mt-3">
+                <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                  <div className="h-full rounded-full bg-red-500 transition-all" style={{ width: `${uploadProgress}%` }} />
+                </div>
+                <p className="mt-1 text-xs text-neutral-400">Uploading video: {uploadProgress}%</p>
+              </div>
+            )}
+            {uploadMessage && <p role="status" className="mt-3 text-sm text-green-400">{uploadMessage}</p>}
+          </div>
+
           <Field label="Video URL">
             <input name="videoUrl" type="url" className={inputClass} placeholder="https://..." maxLength={2048} />
           </Field>
@@ -522,6 +607,14 @@ export default function AdminIncidentForm({
               </select>
             </Field>
           </div>
+
+          <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-white/10 bg-black/20 p-4 text-sm text-neutral-300">
+            <input type="checkbox" name="permanentlyMuted" className="mt-0.5 h-4 w-4 accent-red-600" />
+            <span>
+              <span className="block font-semibold text-white">Permanently mute this incident</span>
+              <span className="mt-1 block text-xs leading-relaxed text-neutral-500">Players will not be able to turn the audio on for this video.</span>
+            </span>
+          </label>
 
           <p className="rounded-lg border border-yellow-500/20 bg-yellow-500/5 p-4 text-xs leading-relaxed text-yellow-300/80">
             Adding a video URL does not mean permission has been granted. Leave the URL blank if you do not have one.
@@ -553,7 +646,7 @@ export default function AdminIncidentForm({
 
         <button
           type="submit"
-          disabled={saving}
+          disabled={saving || uploading}
           className="rounded-lg bg-red-600 px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-950/30 transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
         >
                     {saving

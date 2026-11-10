@@ -1,10 +1,11 @@
+import { Suspense } from "react";
 import { connection } from "next/server";
 import { notFound, redirect } from "next/navigation";
 import AdminIncidentForm from "@/components/admin-incident-form";
 import { isAdminAuthenticated } from "@/lib/admin-session";
 import { getAdminIncidentEditData } from "@/lib/google-sheets";
 
-export default async function EditIncidentPage({
+async function EditIncidentContent({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -37,5 +38,13 @@ export default async function EditIncidentPage({
         <AdminIncidentForm initialData={incident} />
       </div>
     </main>
+  );
+}
+
+export default function EditIncidentPage(props: { params: Promise<{ id: string }> }) {
+  return (
+    <Suspense fallback={<main className="min-h-screen bg-[#11151b] px-4 py-10 text-neutral-400">Loading incident editor...</main>}>
+      <EditIncidentContent {...props} />
+    </Suspense>
   );
 }

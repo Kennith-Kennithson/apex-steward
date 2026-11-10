@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -147,7 +148,7 @@ function DriverCard({
   );
 }
 
-export default async function AdminIncidentPage({
+async function AdminIncidentContent({
   params,
 }: AdminIncidentPageProps) {
   await connection();
@@ -293,12 +294,6 @@ export default async function AdminIncidentPage({
                 {incident.officialDecision.responsibility}
               </Detail>
 
-              <Detail label="Responsibility is scorable">
-                {incident.officialDecision.responsibilityIsScorable
-                  ? "Yes"
-                  : "No"}
-              </Detail>
-
               <Detail label="Penalty">
                 {incident.officialDecision.penalty}
               </Detail>
@@ -438,5 +433,14 @@ export default async function AdminIncidentPage({
 
       </div>
     </main>
+  );
+}
+
+
+export default function AdminIncidentPage(props: AdminIncidentPageProps) {
+  return (
+    <Suspense fallback={<main className="min-h-screen bg-[#101113] px-5 py-10 text-neutral-400">Loading incident...</main>}>
+      <AdminIncidentContent {...props} />
+    </Suspense>
   );
 }

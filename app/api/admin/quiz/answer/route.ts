@@ -110,13 +110,8 @@ export async function POST(request: Request) {
 
     const decision = incident.officialDecision;
 
-    const responsibilityScorable =
-      decision.responsibilityIsScorable &&
-      decision.responsibility !== "not-determined";
-
-    const responsibilityCorrect = responsibilityScorable
-      ? originalResponsibility === decision.responsibility
-      : null;
+    const responsibilityCorrect =
+      originalResponsibility === decision.responsibility;
 
     const penaltyCorrect = penalty === decision.penalty;
 
@@ -139,7 +134,6 @@ export async function POST(request: Request) {
       result: {
         responsibilityCorrect,
         penaltyCorrect,
-        responsibilityScorable,
         officialResponsibility: displayedOfficialResponsibility,
         officialPenalty: decision.penalty,
         penaltyDetails: decision.penaltyDetails ?? null,
