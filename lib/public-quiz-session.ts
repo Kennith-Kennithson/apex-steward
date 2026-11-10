@@ -20,6 +20,7 @@ export interface PublicQuizSession {
     maximumPoints: number;
   }[];
   startedAtMs: number;
+  completedAtMs?: number;
   callsign: string | null;
   leaderboardOptIn: boolean;
 }
@@ -67,6 +68,7 @@ function decryptSession(value: string): PublicQuizSession | null {
         Number.isSafeInteger(answer.earnedPoints) && Number.isSafeInteger(answer.maximumPoints)
       ) ||
       !Number.isSafeInteger(session.startedAtMs) ||
+      (session.completedAtMs !== undefined && !Number.isSafeInteger(session.completedAtMs)) ||
       typeof session.leaderboardOptIn !== "boolean" ||
       !(session.callsign === null || typeof session.callsign === "string")
     ) return null;
