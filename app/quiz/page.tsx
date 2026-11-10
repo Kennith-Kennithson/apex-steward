@@ -28,7 +28,7 @@ interface FinalResult {
   percentage: number;
   grade: string;
   fastestLapMs: number;
-  leaderboardStatus: "private" | "saved" | "callsign-conflict";
+  leaderboardStatus: "private" | "saved" | "callsign-conflict" | "unavailable";
   callsign: string | null;
 }
 
@@ -265,6 +265,8 @@ export default function QuizPage() {
                   {replacementSubmitting ? "SUBMITTING..." : "SUBMIT MY RESULT"} <span>→</span>
                 </button>
               </div>
+            ) : finalResult.leaderboardStatus === "unavailable" ? (
+              <p className="mt-5 text-sm text-amber-300">Your result has been calculated, but the leaderboard could not save it. Your score and incident breakdown are still available above.</p>
             ) : (
               <p className="mt-5 text-sm text-neutral-400">This was a private result and has not been added to the leaderboard.</p>
             )}
