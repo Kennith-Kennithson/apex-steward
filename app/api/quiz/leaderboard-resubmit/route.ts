@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     const maximumPoints = session.incidents.length * MAX_POINTS_PER_INCIDENT;
     const percentage = maximumPoints > 0 ? (championshipPoints / maximumPoints) * 100 : 0;
     const grade = gradeForPercentage(percentage);
-    const fastestLapMs = Math.max(1, Date.now() - session.startedAtMs);
+    const fastestLapMs = Math.max(1, (session.completedAtMs ?? Date.now()) - session.startedAtMs);
 
     await submitLeaderboardResult({
       callsign: callsign.trim(),
