@@ -26,11 +26,10 @@ async function AdminDashboardContent() {
   const overview = await getIncidentOverview();
   const incidents = await getAdminIncidentList();
   let r2Storage: Awaited<ReturnType<typeof getR2StorageUsage>> | null = null;
-  let r2StorageError = false;
   try {
     r2Storage = await getR2StorageUsage();
   } catch {
-    r2StorageError = true;
+    r2Storage = null;
   }
 
   const stats = [
@@ -110,8 +109,8 @@ async function AdminDashboardContent() {
             </div>
             {r2Storage ? (
               <div className="text-left sm:text-right">
-                <p className="text-3xl font-black tabular-nums">{(r2Storage.usedBytes / (1024 * 1024 * 1024)).toFixed(2)} <span className="text-base font-semibold text-neutral-400">/ 10 GB</span></p>
-                <p className="mt-1 text-sm text-neutral-400">{(r2Storage.availableBytes / (1024 * 1024 * 1024)).toFixed(2)} GB remaining · {r2Storage.objectCount} files</p>
+                <p className="text-3xl font-black tabular-nums">{(r2Storage.usedBytes / 1_000_000_000).toFixed(2)} <span className="text-base font-semibold text-neutral-400">/ 10 GB</span></p>
+                <p className="mt-1 text-sm text-neutral-400">{(r2Storage.availableBytes / 1_000_000_000).toFixed(2)} GB remaining · {r2Storage.objectCount} files</p>
               </div>
             ) : (
               <p role="alert" className="max-w-md text-sm text-red-400">Storage usage unavailable. Uploads will be blocked until the R2 bucket can be checked.</p>
