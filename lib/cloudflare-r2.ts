@@ -2,7 +2,7 @@ import "server-only";
 
 import { ListObjectsV2Command, S3Client } from "@aws-sdk/client-s3";
 
-export const R2_STORAGE_LIMIT_BYTES = 10 * 1024 * 1024 * 1024;
+export const R2_STORAGE_LIMIT_BYTES = 10_000_000_000;
 
 function getR2Config() {
   const accountId = process.env.CLOUDFLARE_R2_ACCOUNT_ID;
