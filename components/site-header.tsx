@@ -15,8 +15,8 @@ export default function SiteHeader() {
         <Link href="/#about">ABOUT</Link>
       </nav>
 
-      <Link className="nav-cta" href="/#how-it-works">
-        ENTER THE GRID <span>↗</span>
+      <Link className="nav-cta" href="/quiz">
+        PLAY QUIZ <span>↗</span>
       </Link>
     </header>
   );
