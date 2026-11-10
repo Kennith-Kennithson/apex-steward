@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     const completedAtMs = Date.now();
     const fastestLapMs = Math.max(1, completedAtMs - session.startedAtMs);
 
-    let leaderboardStatus: "private" | "saved" | "unavailable" = "private";
+    let leaderboardStatus: "private" | "saved" | "callsign-conflict" = "private";
     if (session.leaderboardOptIn && session.callsign) {
       const playerTokenHash = await getPlayerTokenHash();
       if (!playerTokenHash) {
